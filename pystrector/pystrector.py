@@ -123,7 +123,7 @@ class Pystrector:
             modifier_type = ModifierTypes.ARRAY
             modifier_count = int("".join(value))
             field_name = field_name[:field_name.find("[")]
-        field_size = (8 * (modifier_type == ModifierTypes.POINTER)) or field_size
+        field_size = (8 * (modifier_type in [ModifierTypes.POINTER, ModifierTypes.POINTER_TO_POINTER])) or field_size
         field_size = (field_size * (modifier_type == ModifierTypes.ARRAY) * modifier_count) or field_size
         return StrionFieldDescriptor(
             field_name,
