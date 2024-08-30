@@ -60,7 +60,7 @@ class StrionFieldObject:
     It does not store characteristics itself so as not to duplicate memory.
     """
     strion_object: Any
-    descriptor: Any
+    descriptor: StrionFieldDescriptor
     converter_to_python: Callable[[Self], [Any]]
     _python_value: Any = NullValue  # cache
 
@@ -114,3 +114,7 @@ class StrionFieldObject:
     @property
     def field_offset(self) -> int:
         return self.descriptor.offset
+
+    @property
+    def field_modifier_count(self) -> int:
+        return self.descriptor.modifier.count

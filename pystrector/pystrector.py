@@ -111,19 +111,18 @@ class Pystrector:
         while raw_field[name_start_index] == " ":
             name_start_index += 1
         modifier_type: ModifierTypes = ModifierTypes.NULL_MODIFIER
-        modifier_count: int = 0
+        modifier_count: int = 1
         if raw_field[name_start_index] == "*":
             modifier_type = ModifierTypes.POINTER
-            modifier_count = 1
-        elif raw_field[name_start_index + 1] == "*":
+            name_start_index += 1
+        if raw_field[name_start_index] == "*":
             modifier_type = ModifierTypes.POINTER_TO_POINTER
-            modifier_count = 2
-        field_name = raw_field[name_start_index + modifier_count:].strip()
+            name_start_index += 1
+        field_name = raw_field[name_start_index:].strip()
         if value := re.findall(r'[(\d+)]', field_name):
             modifier_type = ModifierTypes.ARRAY
             modifier_count = int("".join(value))
             field_name = field_name[:field_name.find("[")]
-
         field_size = (8 * (modifier_type == ModifierTypes.POINTER)) or field_size
         field_size = (field_size * (modifier_type == ModifierTypes.ARRAY) * modifier_count) or field_size
         return StrionFieldDescriptor(
@@ -204,6 +203,10 @@ class Pystrector:
         self._set_converters_to_python(obj)
         return obj
 
+    def _get_type_size(self, type_name: str) -> int:
+        size = self.base_types.get(type_name, self.strions[type_name].strion_size)
+        return size
+
     def _set_converters_to_python(self, strion_object) -> None:
         """ Set converters to all StrionFieldObjects """
         for field_name in strion_object.field_names:
@@ -230,8 +233,8 @@ class Pystrector:
 
             elif field_obj.field_modifier.type == ModifierTypes.ARRAY:
                 def converter_to_python(obj: StrionFieldObject):
-                    res = list(range(obj.field_modifier.count))
-                    for i in range(obj.field_modifier.count):
+                    res = list(range(obj.field_modifier_count))
+                    for i in range(obj.field_modifier_count):
                         res[i] = hex(get_bytes_value(
                             obj.strion_object.memory_address + obj.field_offset + obj.field_size * i,
                             obj.field_size
@@ -241,8 +244,8 @@ class Pystrector:
             elif field_obj.field_modifier.type == ModifierTypes.POINTER_TO_POINTER:
                 def converter_to_python(obj: StrionFieldObject):
                     start_address = get_bytes_value(obj.strion_object.memory_address + obj.field_offset, 8)
-                    res = list(range(obj.field_modifier.count))
-                    for i in range(obj.field_modifier.count):
+                    res = list(range(obj.field_modifier_count))
+                    for i in range(obj.field_modifier_count):
                         res[i] = hex(get_bytes_value(
                             start_address + 8 * i, self.base_types[field_obj.field_c_type]
                         ))
@@ -265,8 +268,8 @@ class Pystrector:
 
             elif field_obj.field_modifier.type == ModifierTypes.ARRAY:
                 def converter_to_python(obj: StrionFieldObject):
-                    res = list(range(obj.field_modifier.count))
-                    for i in range(obj.field_modifier.count):
+                    res = list(range(obj.field_modifier_count))
+                    for i in range(obj.field_modifier_count):
                         res[i] = strion(
                             memory_address=obj.strion_object.memory_address + obj.field_offset + obj.field_size * i
                         )
@@ -276,10 +279,11 @@ class Pystrector:
             elif field_obj.field_modifier.type == ModifierTypes.POINTER_TO_POINTER:
                 def converter_to_python(obj: StrionFieldObject):
                     start_address = get_bytes_value(obj.strion_object.memory_address + obj.field_offset, 8)
-                    res = list(range(obj.field_modifier.count))
-                    for i in range(obj.field_modifier.count):
+                    res = list(range(obj.field_modifier_count))
+                    for i in range(obj.field_modifier_count):
+                        size = self.strions[field_obj.field_c_type].strion_size
                         res[i] = strion(get_bytes_value(
-                            start_address + 8 * i, self.base_types[field_obj.field_c_type]
+                            start_address + 8 * i, size
                         ))
                         self._set_converters_to_python(res[i])
                     return res
