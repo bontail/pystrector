@@ -22,13 +22,16 @@ class StrionBase(metaclass=StrionMeta):
 
     memory_address: int
     type: StrionTypes
+    use_cache: bool
 
-    def __init__(self, python_object: Any = NullValue, memory_address: int = NullValue) -> None:
+    def __init__(self, python_object: Any = NullValue, memory_address: int = NullValue,
+                 use_cache: bool = False) -> None:
         if python_object is NullValue and memory_address is NullValue:
             raise NullArgsLimitException("Null arguments limit exceeded")
         self.memory_address = memory_address
         if self.memory_address is NullValue:
             self.memory_address = id(python_object)
+        self.use_cache = use_cache
 
     def __repr__(self) -> str:
         return f"StrIon {self.strion.__name__} object (memory address {self.hex_address}) (python {hex(id(self))})"
@@ -51,4 +54,3 @@ class StrionBase(metaclass=StrionMeta):
         for field_name in self.field_names:
             s += "\t" + str(getattr(self, field_name)) + "\n"
         return s[:-1]
-

@@ -83,7 +83,7 @@ class StrionFieldObject:
 
     @property
     def python_value(self) -> Any:
-        if self._python_value is NullValue:
+        if self._python_value is NullValue or not self.strion_object.use_cache:
             self._python_value = self.converter_to_python(self)
         return self._python_value
 

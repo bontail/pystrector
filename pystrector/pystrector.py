@@ -188,7 +188,7 @@ class Pystrector:
         self._update_address_to_strion(gen, "PyGenObject")
 
     def bind_object(self, python_object: Any = NullValue, memory_address: int = NullValue,
-                    cast_strion_name: str = NullValue) -> Any:
+                    cast_strion_name: str = NullValue, use_cache: bool = False) -> Any:
         """ :return Strion object which is built on the basis of the Python object sources """
         default_strion = self.strions["PyObject"]
         obj = default_strion(python_object, memory_address)
@@ -199,7 +199,7 @@ class Pystrector:
         if cast_strion_name is not NullValue:
             concrete_strion = self.strions[cast_strion_name]
 
-        obj = concrete_strion(python_object, memory_address)
+        obj = concrete_strion(python_object=python_object, memory_address=memory_address, use_cache=use_cache)
         self._set_converters_to_python(obj)
         return obj
 
@@ -255,14 +255,17 @@ class Pystrector:
             strion = self.strions[field_obj.field_c_type]
             if field_obj.field_modifier.type == ModifierTypes.NULL_MODIFIER:
                 def converter_to_python(obj: StrionFieldObject):
-                    res = strion(memory_address=obj.strion_object.memory_address + obj.field_offset)
+                    res = strion(
+                        memory_address=obj.strion_object.memory_address + obj.field_offset,
+                        use_cache=obj.strion_object.use_cache,
+                    )
                     self._set_converters_to_python(res)
                     return res
 
             elif field_obj.field_modifier.type == ModifierTypes.POINTER:
                 def converter_to_python(obj: StrionFieldObject):
                     address: int = get_bytes_value(obj.strion_object.memory_address + obj.field_offset, 8)
-                    res = strion(memory_address=address)
+                    res = strion(memory_address=address, use_cache=obj.strion_object.use_cache)
                     self._set_converters_to_python(res)
                     return res
 
@@ -271,7 +274,8 @@ class Pystrector:
                     res = list(range(obj.field_modifier_count))
                     for i in range(obj.field_modifier_count):
                         res[i] = strion(
-                            memory_address=obj.strion_object.memory_address + obj.field_offset + obj.field_size * i
+                            memory_address=obj.strion_object.memory_address + obj.field_offset + obj.field_size * i,
+                            use_cache=obj.strion_object.use_cache,
                         )
                         self._set_converters_to_python(res[i])
                     return res
@@ -282,9 +286,10 @@ class Pystrector:
                     res = list(range(obj.field_modifier_count))
                     for i in range(obj.field_modifier_count):
                         size = self.strions[field_obj.field_c_type].strion_size
-                        res[i] = strion(get_bytes_value(
-                            start_address + 8 * i, size
-                        ))
+                        res[i] = strion(
+                            memory_address=get_bytes_value(start_address + 8 * i, size),
+                            use_cache=obj.strion_object.use_cache,
+                        )
                         self._set_converters_to_python(res[i])
                     return res
 
