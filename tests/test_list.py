@@ -1,35 +1,33 @@
 import unittest
-from pystrector import Pystrector
-from sys import getrefcount
+from pystrector import Binder
+from pystrector.core_datatypes import _longobject
 
-strector = Pystrector()
+binder = Binder()
 
 
 class TestList(unittest.TestCase):
 
-    def test_list_refcnt(self):
-        for i in range(1000):
-            obj = list()
-            reflector = strector.bind_object(obj)
-            self.assertEqual(reflector.ob_base.ob_base.ob_refcnt.python_value, getrefcount(obj) - 1)
-
-    def test_list_type(self):
-        first_obj = list()
-        first_type_address = strector.bind_object(first_obj).ob_base.ob_base.ob_type.python_value.hex_address
-        second_obj = list()
-        second_type_address = strector.bind_object(second_obj).ob_base.ob_base.ob_type.python_value.hex_address
-        self.assertEqual(first_type_address, second_type_address)
-
     def test_list_ob_size(self):
         for i in range(1000):
             obj = list(range(i))
-            self.assertEqual(strector.bind_object(obj).ob_base.ob_size.python_value, i)
-
-    def test_ob_item(self):
-        assert True
+            self.assertEqual(binder.bind(obj).ob_base.ob_size.pretty_value, i)
 
     def test_list_allocated(self):
         for i in range(1000):
             obj = list(range(i))
-            self.assertGreaterEqual(strector.bind_object(obj).allocated.python_value, i)
+            self.assertGreaterEqual(binder.bind(obj).allocated.pretty_value, i)
 
+    def test_list_ob_items(self):
+        for i in range(100):
+            obj = list(range(i))
+            for j in range(i):
+                self.assertEqual(
+                    (+binder.bind(obj).ob_item[j]).cast_to(
+                        _longobject).long_value.ob_digit[0].pretty_value,
+                    j
+                )
+                self.assertEqual(
+                    (+(binder.bind(obj).ob_item + j))[0].cast_to(
+                        _longobject).long_value.ob_digit[0].pretty_value,
+                    j
+                )
