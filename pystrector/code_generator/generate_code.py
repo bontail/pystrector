@@ -11,14 +11,15 @@ from pystrector.base_datatypes import DataTypeMeta, Void, Int, Func, Array, \
     get_anonymous_var_name
 from pystrector.code_generator.prepare_c_file import prepare_c_file
 
-ANONYMOUS_STRUCT_INDEX = 1
+
+ANONYMOUS_STRUCT_ID = 1
 
 
-def get_anonymous_struct_index() -> int:
-    global ANONYMOUS_STRUCT_INDEX
-    ANONYMOUS_STRUCT_INDEX += 1
+def get_anonymous_struct_name() -> str:
+    global ANONYMOUS_STRUCT_ID
+    ANONYMOUS_STRUCT_ID += 1
 
-    return ANONYMOUS_STRUCT_INDEX - 1
+    return f"anonymous_{ANONYMOUS_STRUCT_ID - 1}"
 
 
 def get_expr_from_binary_op(node: Node) -> str:
@@ -196,7 +197,7 @@ class CoreDataTypePrototype:
             if isinstance(parent_node, TypeDecl):
                 name = parent_node.declname
             else:
-                name = f"anonymous_{get_anonymous_struct_index()}"
+                name = get_anonymous_struct_name()
         name = name.replace('__', '_')
 
         new_prototype = CoreDataTypePrototype(
