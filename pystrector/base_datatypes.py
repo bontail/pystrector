@@ -4,17 +4,18 @@ from pystrector.utils import get_bytes_value, set_bytes_value
 from struct import unpack, pack
 import textwrap
 
-ANONYMOUS_VAR: str = "anonymous_var"
-ANONYMOUS_VAR_INDEX: int = 1
+
+ANONYMOUS_VAR_PREFIX: str = "anonymous_var"
+ANONYMOUS_VAR_ID: int = 1
 
 PRIVATE_ATTRS_PREFIX: str = "_PRIVATE_ATTR_"
 
 
 def get_anonymous_var_name() -> str:
-    global ANONYMOUS_VAR_INDEX
-    ANONYMOUS_VAR_INDEX += 1
+    global ANONYMOUS_VAR_ID
+    ANONYMOUS_VAR_ID += 1
 
-    return f"{ANONYMOUS_VAR}_{ANONYMOUS_VAR_INDEX - 1}"
+    return f"{ANONYMOUS_VAR_PREFIX}_{ANONYMOUS_VAR_ID - 1}"
 
 
 class DataTypeMeta(type):
@@ -142,7 +143,7 @@ class DataType(metaclass=DataTypeMeta):
             return value
 
         for field_name in self.__class__.fields:
-            if (field_name.startswith(ANONYMOUS_VAR) and
+            if (field_name.startswith(ANONYMOUS_VAR_PREFIX) and
                     item in self.__class__.__dict__[
                         field_name].__class__.fields):
                 return getattr(getattr(self, field_name), item)
