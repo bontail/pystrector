@@ -86,9 +86,3 @@ class Binder:
     def bind(obj: Any) -> UsedDataType:
         """Return the wrapper object."""
         return Binder.cls_to_datatype[type(obj)](ptr=id(obj))
-
-
-if __name__ == '__main__':
-    binder = Binder()
-    reflector = binder.bind(1)
-    reflector.long_value.lv_tag = bytearray(1)
