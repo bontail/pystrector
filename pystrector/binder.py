@@ -8,7 +8,7 @@ from pystrector.core_datatypes import PyByteArrayObject, \
     PyBaseExceptionGroupObject, PySyntaxErrorObject, PyImportErrorObject, \
     PyUnicodeErrorObject, PySystemExitObject, PyOSErrorObject, \
     PyStopIterationObject, PyNameErrorObject, PyAttributeErrorObject, \
-    _PyDictViewObject, PyAsyncGenObject, PyCodeObject
+    _PyDictViewObject, PyAsyncGenObject, PyCodeObject, PyCellObject
 
 UsedDataType: TypeAlias = (
         PyByteArrayObject | PyBytesObject | PyUnicodeObject | PyFloatObject |
@@ -19,7 +19,7 @@ UsedDataType: TypeAlias = (
         PyImportErrorObject | PyUnicodeErrorObject | PySystemExitObject |
         PyOSErrorObject | PyStopIterationObject | PyNameErrorObject |
         PyAttributeErrorObject | _PyDictViewObject | PyAsyncGenObject |
-        PyCodeObject
+        PyCodeObject | PyCellObject
 )
 
 
@@ -65,7 +65,16 @@ class Binder:
         # TODO: PyMethodObject or PyInstanceMethodObject
         cls.make_bind(lambda _: _, PyCodeObject)
 
-        # TODO: PyCellObject
+        def get_func():
+            a = 0
+
+            def get():
+                return a
+
+            return get
+
+        cls.make_bind(get_func().__closure__[0], PyCellObject)
+
         # TODO: PyCoroObject
         async def async_generator():
             for i in range(10):
