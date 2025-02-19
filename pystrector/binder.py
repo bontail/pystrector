@@ -93,11 +93,6 @@ class Binder:
                 yield i
 
         cls.make_bind(async_generator(), PyAsyncGenObject)
-        # TODO: PyDescrObject
-        # TODO: PyMethodDescrObject
-        # TODO: PyMemberDescrObject
-        # TODO: PyGetSetDescrObject
-        # TODO: PyWrapperDescrObject
 
     def __init__(self) -> None:
         if not self.__class__.cls_to_datatype:
