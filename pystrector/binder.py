@@ -21,7 +21,8 @@ UsedDataType: TypeAlias = (
         PyImportErrorObject | PyUnicodeErrorObject | PySystemExitObject |
         PyOSErrorObject | PyStopIterationObject | PyNameErrorObject |
         PyAttributeErrorObject | _PyDictViewObject | PyAsyncGenObject |
-        PyCodeObject | PyCellObject | PyCoroObject
+        PyCodeObject | PyCellObject | PyCoroObject | PyMethodObject |
+        PyInstanceMethodObject
 )
 
 
