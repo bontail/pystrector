@@ -1,3 +1,4 @@
+import ctypes
 from typing import Any, TypeAlias, ClassVar
 from pystrector.base_datatypes import DataTypeMeta
 from pystrector.core_datatypes import PyByteArrayObject, \
@@ -9,7 +10,7 @@ from pystrector.core_datatypes import PyByteArrayObject, \
     PyUnicodeErrorObject, PySystemExitObject, PyOSErrorObject, \
     PyStopIterationObject, PyNameErrorObject, PyAttributeErrorObject, \
     _PyDictViewObject, PyAsyncGenObject, PyCodeObject, PyCellObject, \
-    PyCoroObject, PyMethodObject
+    PyCoroObject, PyMethodObject, PyInstanceMethodObject
 
 UsedDataType: TypeAlias = (
         PyByteArrayObject | PyBytesObject | PyUnicodeObject | PyFloatObject |
@@ -63,7 +64,11 @@ class Binder:
         cls.make_bind(NameError(), PyNameErrorObject)
         cls.make_bind(AttributeError(), PyAttributeErrorObject)
 
-        # TODO: PyInstanceMethodObject
+        PyInstanceMethod_New = ctypes.pythonapi.PyInstanceMethod_New
+        PyInstanceMethod_New.argtypes = (ctypes.py_object,)
+        PyInstanceMethod_New.restype = ctypes.py_object
+        cls.make_bind(PyInstanceMethod_New(sum), PyInstanceMethodObject)
+
         cls.make_bind(Binder().bind, PyMethodObject)
         cls.make_bind(lambda _: _, PyCodeObject)
 
