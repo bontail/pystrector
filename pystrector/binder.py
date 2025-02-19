@@ -9,7 +9,7 @@ from pystrector.core_datatypes import PyByteArrayObject, \
     PyUnicodeErrorObject, PySystemExitObject, PyOSErrorObject, \
     PyStopIterationObject, PyNameErrorObject, PyAttributeErrorObject, \
     _PyDictViewObject, PyAsyncGenObject, PyCodeObject, PyCellObject, \
-    PyCoroObject
+    PyCoroObject, PyMethodObject
 
 UsedDataType: TypeAlias = (
         PyByteArrayObject | PyBytesObject | PyUnicodeObject | PyFloatObject |
@@ -63,7 +63,8 @@ class Binder:
         cls.make_bind(NameError(), PyNameErrorObject)
         cls.make_bind(AttributeError(), PyAttributeErrorObject)
 
-        # TODO: PyMethodObject or PyInstanceMethodObject
+        # TODO: PyInstanceMethodObject
+        cls.make_bind(Binder().bind, PyMethodObject)
         cls.make_bind(lambda _: _, PyCodeObject)
 
         def get_func():
