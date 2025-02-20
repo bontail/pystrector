@@ -323,7 +323,7 @@ class Array(Pointer):
         instance.value = value
 
 
-class BaseInteger(DataType):
+class BaseNumber(DataType):
     signed = True
 
     def convert_from_bytes(self, bytes_value: bytearray) -> int:
@@ -340,11 +340,11 @@ class BaseInteger(DataType):
         return arr
 
 
-class BaseSignedInteger(BaseInteger):
+class BaseSignedNumber(BaseNumber):
     signed = True
 
 
-class BaseUnsignedInteger(BaseInteger):
+class BaseUnsignedNumber(BaseNumber):
     signed = False
 
 
@@ -359,14 +359,14 @@ class Bool(DataType):
         return bytearray(int(bytes_value).to_bytes())
 
 
-class Byte(BaseSignedInteger):
+class Byte(BaseSignedNumber):
     additional_names: ClassVar[tuple[str, ...]] = (
         'byte', 'char', 'signed char', 'signed byte',
     )
     size = 1
 
 
-class UnsignedByte(BaseUnsignedInteger):
+class UnsignedByte(BaseUnsignedNumber):
     additional_names: ClassVar[tuple[str, ...]] = (
         'unsigned char', 'unsigned byte'
     )
