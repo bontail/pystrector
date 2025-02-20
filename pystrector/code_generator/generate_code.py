@@ -63,11 +63,17 @@ def handle_node(node: Node, parent_node: Node) -> str | None:
 
     elif isinstance(node, Typedef):
         typedef = node.name.replace("__", "_")
-        datatype = handle_node(node.type, node).replace("__", "_")
+        datatype = handle_node(node.type, node)
+
+        if datatype is None:
+            raise Exception("fatal")
+
+        datatype = datatype.replace("__", "_")
+
         if typedef == datatype:
             # typedef equals datatype when a typedef is created on a structure
             # without a name so no need to create typedef
-            return
+            return None
 
         DataTypeMeta.create_typedef(
             typedef,
@@ -99,8 +105,9 @@ def handle_node(node: Node, parent_node: Node) -> str | None:
     elif isinstance(node, FuncDecl):
         return Func.__name__
 
-    else:
-        raise NotImplementedError()
+    raise NotImplementedError()
+
+
 
 
 @dataclass
@@ -124,8 +131,10 @@ class CoreDataTypePrototypeField:
         fields: list[CoreDataTypePrototypeField] = []
         for decl in node.decls:
             name = decl.name if decl.name else get_anonymous_var_name()
-            datatype = (handle_node(decl.type, parent_node).
-                        replace("__", "_"))
+            datatype = handle_node(decl.type, parent_node)
+            if datatype is None:
+                raise Exception("fatal")
+            datatype = datatype.replace("__", "_")
             fields.append(CoreDataTypePrototypeField(
                 name=name,
                 type=datatype,
@@ -213,11 +222,11 @@ class CoreDataTypePrototype:
 
 
 def main():
-    file = './staticfiles/python_structures.c'
-    prepared_file = './staticfiles/prepared_python_structures.c'
-    prepare_c_file(file, prepared_file)
+    source_filename = './staticfiles/python_structures.c'
+    prepared_filename = './staticfiles/prepared_python_structures.c'
+    prepare_c_file(source_filename, prepared_filename)
 
-    ast = parse_file(prepared_file)
+    ast = parse_file(prepared_filename)
 
     for node in ast:
         if not isinstance(node, Typedef) and not isinstance(node, Decl):

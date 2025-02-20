@@ -134,7 +134,7 @@ class DataType(metaclass=DataTypeMeta):
         key = self.transform_name(self.__class__, key)
         super().__setattr__(key, value)
 
-    def __getattr__(self, item: str) -> Any:
+    def __getattr__(self, item: str) -> DataType:
         value = self.__dict__.get(
             self.transform_name(self.__class__, item),
             None,
@@ -176,6 +176,15 @@ class DataType(metaclass=DataTypeMeta):
             )
         obj = getattr(instance, self.field_name)
         obj.bytes_value = value.bytes_value
+
+    def __getitem__(self, item: int) -> DataType:
+        raise NotImplementedError("Fatal")
+
+    def __pos__(self) -> DataType:
+        raise NotImplementedError("Fatal")
+
+    def __add__(self, other) -> DataType:
+        raise NotImplementedError("Fatal")
 
     def set_offset(self, offset: int) -> None:
         self.__offset = offset

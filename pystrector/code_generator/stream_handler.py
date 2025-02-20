@@ -76,10 +76,10 @@ class IntervalSequenceFilter(ExtraSequenceFilterBase):
                     return ExtraSequenceCoords(
                         index - len(self.start_bytes) + 1, index
                     )
-                return
+                return None
             else:
                 self.match_start_index = 0
-                return
+                return None
 
         if (self.end_condition(char) and
                 char == self.end_bytes[self.match_end_index]):
@@ -116,6 +116,8 @@ class SequenceEqualsFilter(ExtraSequenceFilterBase):
                 )
         else:
             self.match_index = 0
+
+        return None
 
 
 class StreamHandler:
