@@ -22,7 +22,7 @@ class TestList(unittest.TestCase):
             obj = list(range(i))
             for j in range(i):
                 self.assertEqual(
-                    (+binder.bind(obj).ob_item[j]).cast_to(
+                    (+(binder.bind(obj).ob_item[j])).cast_to(
                         _longobject).long_value.ob_digit[0].pretty_value,
                     j
                 )
