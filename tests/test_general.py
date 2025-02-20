@@ -13,5 +13,4 @@ class TestGeneral(unittest.TestCase):
         reflector_number = binder.bind(number)
         reflector_number.ob_base.ob_type = reflector_func.ob_base.ob_type
         self.assertEqual(type(number), type(func))
-        reflector_func.ob_base.ob_type = binder.bind(lambda _: _).ob_base.ob_type
-
+        reflector_number.ob_base.ob_type = binder.bind(1.7).ob_base.ob_type
