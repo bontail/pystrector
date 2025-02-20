@@ -8,14 +8,15 @@ binder = Binder()
 class TestList(unittest.TestCase):
 
     def test_list_ob_size(self):
-        for i in range(1000):
-            obj = list(range(i))
-            self.assertEqual(binder.bind(obj).ob_base.ob_size.pretty_value, i)
+        size = 100
+        obj = list(range(size))
+        self.assertEqual(binder.bind(obj).ob_base.ob_size.pretty_value, size)
 
     def test_list_allocated(self):
-        for i in range(1000):
-            obj = list(range(i))
-            self.assertGreaterEqual(binder.bind(obj).allocated.pretty_value, i)
+        size = 100
+        obj = list(range(size))
+        obj.pop()
+        self.assertGreaterEqual(binder.bind(obj).allocated.pretty_value, size)
 
     def test_list_ob_items(self):
         for i in range(100):

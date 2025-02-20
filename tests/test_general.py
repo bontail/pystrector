@@ -14,3 +14,7 @@ class TestGeneral(unittest.TestCase):
         reflector_number.ob_base.ob_type = reflector_func.ob_base.ob_type
         self.assertEqual(type(number), type(func))
         reflector_number.ob_base.ob_type = binder.bind(1.7).ob_base.ob_type
+
+    def test_get_anonymous_union(self):
+        reflector = binder.bind(1)
+        _ = reflector.ob_base.ob_refcnt
