@@ -71,7 +71,7 @@ class Binder:
         cls.make_bind(PyInstanceMethod_New(sum), PyInstanceMethodObject)
 
         cls.make_bind(Binder().bind, PyMethodObject)
-        cls.make_bind(lambda _: _, PyCodeObject)
+        cls.make_bind((lambda _: _).__code__, PyCodeObject)
 
         def get_func():
             a = 0
