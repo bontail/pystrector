@@ -5,6 +5,22 @@ binder = Binder()
 
 
 class TestNumber(unittest.TestCase):
+
+    def test_get_value_object(self):
+        x = 1111
+        reflector_x = binder.bind(x)
+        _ = reflector_x.ob_base.ob_refcnt
+
+    def test_get_pretty_value(self):
+        x = 3333
+        reflector_x = binder.bind(x)
+        _ = reflector_x.ob_base.ob_refcnt.pretty_value
+
+    def test_get_bytes_value(self):
+        x = 5555
+        reflector_x = binder.bind(x)
+        _ = reflector_x.ob_base.ob_refcnt.bytes_value
+
     def test_set_value_object(self):
         x = 999999
         y = 888888
