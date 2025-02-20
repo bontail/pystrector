@@ -222,8 +222,8 @@ class DataType(metaclass=DataTypeMeta):
     def convert_from_bytes(self, bytes_value: bytearray) -> Any:
         return bytes_value
 
-    def convert_to_bytes(self, bytes_value: Any) -> bytearray:
-        return bytearray(bytes_value)
+    def convert_to_bytes(self, value: Any) -> bytearray:
+        return bytearray(value)
 
     def cast_to(self, datatype: DataTypeMeta) -> DataType:
         return datatype(ptr=self.address)
@@ -330,10 +330,10 @@ class BaseNumber(DataType):
         return int.from_bytes(bytes_value, byteorder='little',
                               signed=self.signed)
 
-    def convert_to_bytes(self, bytes_value: int) -> bytearray:
+    def convert_to_bytes(self, integer_value: int) -> bytearray:
         arr = bytearray(self.size)
-        hex_value = ("0" * bool(len(hex(bytes_value)) % 2 == 1)) + hex(
-            bytes_value)[2:]
+        hex_value = ("0" * bool(len(hex(integer_value)) % 2 == 1)) + hex(
+            integer_value)[2:]
         for index, byte in enumerate(reversed(textwrap.wrap(hex_value, 2))):
             arr[index] = int(byte, 16)
 
@@ -355,8 +355,8 @@ class Bool(DataType):
     def convert_from_bytes(self, bytes_value: bytearray) -> bool:
         return all(map(lambda b: b == 255, bytes_value))
 
-    def convert_to_bytes(self, bytes_value: bool) -> bytearray:
-        return bytearray(int(bytes_value).to_bytes())
+    def convert_to_bytes(self, bool_value: bool) -> bytearray:
+        return bytearray(int(bool_value).to_bytes())
 
 
 class Byte(BaseSignedNumber):
@@ -421,8 +421,8 @@ class Float(DataType):
     def convert_from_bytes(self, bytes_value: bytearray) -> float:
         return unpack('f', bytes_value)[0]
 
-    def convert_to_bytes(self, bytes_value: float) -> bytearray:
-        return bytearray(pack('f', bytes_value))
+    def convert_to_bytes(self, float_value: float) -> bytearray:
+        return bytearray(pack('f', float_value))
 
 
 class Double(Float):
@@ -432,8 +432,8 @@ class Double(Float):
     def convert_from_bytes(self, bytes_value: bytearray) -> float:
         return unpack('d', bytes_value)[0]
 
-    def convert_to_bytes(self, bytes_value: float) -> bytearray:
-        return bytearray(pack('d', bytes_value))
+    def convert_to_bytes(self, float_value: float) -> bytearray:
+        return bytearray(pack('d', float_value))
 
 
 class Void(DataType):
