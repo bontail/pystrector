@@ -39,6 +39,8 @@ git clone https://github.com/bontail/pystrector.git
 
 ### Documentation
 
+[Russian](./docs/README-RU.md)
+
 To access the representation of the basic structures, you need to create an anchor object
 
 ```python
@@ -117,4 +119,4 @@ binder.bind(x).ob_item[0][0].cast()
 ```
 
 
-More examples can be seen in [tests](/tests)
+More examples can be seen in [tests](./tests)
