@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import ClassVar
+from typing import ClassVar, assert_never
 from pycparser import parse_file  # noqa
 from dataclasses import dataclass
 from pycparser.c_ast import Decl, Typedef, PtrDecl, Struct, \
@@ -46,55 +46,34 @@ def get_expr_from_binary_op(node: Node) -> str:
         return '0'
 
     else:
-        raise NotImplementedError()
+        assert_never(node)
 
 
 def get_dimensions(node: ArrayDecl) -> int:
     if not isinstance(node, ArrayDecl):
-        raise TypeError('Node must be an ArrayDecl')
+        assert_never(node)
 
     return int(eval(get_expr_from_binary_op(node.dim)))
 
 
-def handle_node(node: Node, parent_node: Node) -> str | None:
-    """Recursively go through the nodes and create typedefs and structs."""
-    if isinstance(node, Decl):
-        handle_node(node.type, node)
-
-    elif isinstance(node, Typedef):
-        typedef = node.name.replace("__", "_")
-        datatype = handle_node(node.type, node)
-
-        if datatype is None:
-            raise Exception("fatal")
-
-        datatype = datatype.replace("__", "_")
-
-        if typedef == datatype:
-            # typedef equals datatype when a typedef is created on a structure
-            # without a name so no need to create typedef
-            return None
-
-        DataTypeMeta.create_typedef(
-            typedef,
-            datatype,
-        )
-
-    elif isinstance(node, IdentifierType):
+def get_type(node: Node, parent_node: Node) -> str:
+    """Get type and create CoreDataTypePrototype if it is Union or Struct."""
+    if isinstance(node, IdentifierType):
         return ' '.join(node.names)
 
     elif isinstance(node, PtrDecl):
-        return f'*{handle_node(node.type, node)}'
+        return f'*{get_type(node.type, node)}'
 
     elif isinstance(node, ArrayDecl):
-        return f'[{get_dimensions(node)}]{handle_node(node.type, node)}'
+        return f'[{get_dimensions(node)}]{get_type(node.type, node)}'
 
     elif isinstance(node, TypeDecl):
-        return handle_node(node.type, node)
+        return get_type(node.type, node)
 
     elif isinstance(node, Struct) or isinstance(node, Union):
         prototype = CoreDataTypePrototype.from_node(node, parent_node)
         if prototype.fields is None:
+            # struct is useless
             return Void.__name__
 
         return prototype.name
@@ -105,9 +84,32 @@ def handle_node(node: Node, parent_node: Node) -> str | None:
     elif isinstance(node, FuncDecl):
         return Func.__name__
 
-    raise NotImplementedError()
+    else:
+        assert_never(node)
 
 
+def handle_node(node: Node) -> None:
+    """Recursively go through the nodes."""
+    if isinstance(node, Decl):
+        get_type(node.type, node)
+        return None
+
+    elif isinstance(node, Typedef):
+        typedef = node.name
+        datatype = get_type(node.type, node)
+
+        if typedef == datatype:
+            # typedef equals datatype when a typedef is created on a structure
+            # without a name so no need to create typedef
+            return None
+
+        DataTypeMeta.create_typedef(
+            typedef,
+            datatype,
+        )
+        return None
+
+    assert_never(node)
 
 
 @dataclass
@@ -122,7 +124,7 @@ class CoreDataTypePrototypeField:
     type: str
 
     @classmethod
-    def from_node(cls, node: Struct | Union, parent_node: Node) -> \
+    def from_node(cls, node: Struct | Union) -> \
             list[CoreDataTypePrototypeField]:
         """Create CoreDataTypePrototypeField from node."""
         if node.decls is None:
@@ -131,9 +133,7 @@ class CoreDataTypePrototypeField:
         fields: list[CoreDataTypePrototypeField] = []
         for decl in node.decls:
             name = decl.name if decl.name else get_anonymous_var_name()
-            datatype = handle_node(decl.type, parent_node)
-            if datatype is None:
-                raise Exception("fatal")
+            datatype = get_type(decl.type, decl)
             datatype = datatype.replace("__", "_")
             fields.append(CoreDataTypePrototypeField(
                 name=name,
@@ -198,7 +198,7 @@ class CoreDataTypePrototype:
     is_union: bool = False
 
     @classmethod
-    def from_node(cls, node: Struct | Union, parent_node: Node) \
+    def from_node(cls, node: Struct | Union | TypeDecl, parent_node: Node) \
             -> CoreDataTypePrototype:
         """Create CoreDataTypePrototype from node and register it."""
         name = node.name
@@ -211,7 +211,7 @@ class CoreDataTypePrototype:
 
         new_prototype = CoreDataTypePrototype(
             name=name,
-            fields=CoreDataTypePrototypeField.from_node(node, parent_node),
+            fields=CoreDataTypePrototypeField.from_node(node),
             is_union=isinstance(node, Union),
         )
 
@@ -232,7 +232,7 @@ def main():
         if not isinstance(node, Typedef) and not isinstance(node, Decl):
             continue
 
-        handle_node(node, node)
+        handle_node(node)
 
     # now we have all prototypes in CoreDataTypePrototype.registered_prototypes
     core_datatypes_file = '../core_datatypes.py'
