@@ -49,7 +49,7 @@ class TestPointer(unittest.TestCase):
         first_reflector = binder.bind(first_numbers)
         second_reflector = binder.bind(second_numbers)
         for i in range(30):
-            first_reflector.ob_item[i] = second_reflector.ob_item[i]
+            first_reflector.ob_item[i] = second_reflector.ob_item[i]  # type: ignore
 
         self.assertEqual(first_numbers, second_numbers)
 
