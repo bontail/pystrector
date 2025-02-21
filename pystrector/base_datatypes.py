@@ -30,6 +30,8 @@ class DataTypeMeta(type):
         For example:
             create_typedef('PyObject', '_object')
         """
+        typedef = typedef.replace("__", "_")
+        datatype = datatype.replace("__", "_")
         cls.typedefs[typedef] = datatype
 
     @classmethod
@@ -135,7 +137,7 @@ class DataType(metaclass=DataTypeMeta):
         super().__setattr__(key, value)
 
     def __getattr__(self, item: str) -> DataType:
-        value = self.__dict__.get(
+        value: DataType | None = self.__dict__.get(
             self.transform_name(self.__class__, item),
             None,
         )
