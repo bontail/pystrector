@@ -10,7 +10,7 @@ from pystrector.core_datatypes import PyByteArrayObject, \
     PyUnicodeErrorObject, PySystemExitObject, PyOSErrorObject, \
     PyStopIterationObject, PyNameErrorObject, PyAttributeErrorObject, \
     _PyDictViewObject, PyAsyncGenObject, PyCodeObject, PyCellObject, \
-    PyCoroObject, PyMethodObject, PyInstanceMethodObject
+    PyCoroObject, PyMethodObject, PyInstanceMethodObject, _object
 
 UsedDataType: TypeAlias = (
         PyByteArrayObject | PyBytesObject | PyUnicodeObject | PyFloatObject |
@@ -28,11 +28,14 @@ UsedDataType: TypeAlias = (
 
 class Binder:
     cls_to_datatype: ClassVar[dict[Any, DataTypeMeta]] = {}
+    type_address_to_cls: ClassVar[dict[int, Any]] = {}
 
     @classmethod
     def make_bind(cls, obj: Any, datatype: DataTypeMeta) -> None:
         """Save the relation between Python type and core wrap class."""
         cls.cls_to_datatype[type(obj)] = datatype
+        address = _object(ptr=id(obj)).ob_type.ptr_for_unpacking
+        cls.type_address_to_cls[address] = type(obj)
 
     @classmethod
     def make_binds(cls) -> None:

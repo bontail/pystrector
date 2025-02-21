@@ -230,6 +230,15 @@ class DataType(metaclass=DataTypeMeta):
     def cast_to(self, datatype: DataTypeMeta) -> DataType:
         return datatype(ptr=self.address)
 
+    def cast(self):
+        if self.__class__.__name__ != "_object":
+            raise TypeError("Autocast work only with _object")
+
+        from pystrector import Binder
+        return Binder.cls_to_datatype[
+            Binder.type_address_to_cls[self.ob_type.ptr_for_unpacking]
+        ](ptr=self.address)
+
 
 class Pointer(DataType):
     additional_names: ClassVar[tuple[str, ...]] = ('*',)
