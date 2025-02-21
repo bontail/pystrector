@@ -3,6 +3,8 @@
 
 ### The **Py**_(thon)_ **Str**_(uct)_ _(Refl)_**ector**
 
+![icon](docs/pystrector_icon.png)
+
 ---
 
 The package for displaying and changing core Python structures. <br> Do you want to see how objects in Python actually work? <br> Then this package is for you.
@@ -22,7 +24,7 @@ print(reflector.ob_base.ob_refcnt.pretty_value)
 To download the package enter the command.
 
 ```shell
-python3 -m pip install pystrector
+uv add pystrector
 ```
 
 ---
@@ -36,6 +38,8 @@ git clone https://github.com/bontail/pystrector.git
 ---
 
 ### Documentation
+
+[Russian](./docs/README-RU.md)
 
 To access the view of core structures you need to create a binder object
 
