@@ -180,13 +180,19 @@ class DataType(metaclass=DataTypeMeta):
         obj.bytes_value = value.bytes_value
 
     def __getitem__(self, item: int) -> DataType:
-        raise NotImplementedError("Fatal")
+        raise TypeError(
+            f"{self.__class__.__name__} doesn't support __getitem__"
+        )
 
     def __pos__(self) -> DataType:
-        raise NotImplementedError("Fatal")
+        raise TypeError(
+            f"{self.__class__.__name__} doesn't support __pos__"
+        )
 
     def __add__(self, other) -> DataType:
-        raise NotImplementedError("Fatal")
+        raise TypeError(
+            f"{self.__class__.__name__} doesn't support __add__"
+        )
 
     def set_offset(self, offset: int) -> None:
         self.__offset = offset
@@ -201,7 +207,7 @@ class DataType(metaclass=DataTypeMeta):
     @property
     def bytes_value(self):
         return get_bytes_value(
-            self.__ptr + self.__offset, self.size
+            self.address, self.size
         )
 
     @bytes_value.setter
@@ -211,7 +217,7 @@ class DataType(metaclass=DataTypeMeta):
                 f"Value must be bytearray, not {type(bytes_value)}"
             )
 
-        set_bytes_value(self.__ptr + self.__offset, bytes_value)
+        set_bytes_value(self.address, bytes_value)
 
     @property
     def pretty_value(self) -> Any:
@@ -297,6 +303,12 @@ class Pointer(DataType):
 
     def set_arr_index(self, index: int) -> None:
         self.__arr_index = index
+
+    def convert_from_bytes(self, bytes_value: bytearray) -> int:
+        raise TypeError("Pointer doesn't support pretty_value")
+
+    def convert_to_bytes(self, integer_value: int) -> bytearray:
+        raise TypeError("Pointer doesn't support pretty_value")
 
 
 class Array(Pointer):
@@ -450,22 +462,18 @@ class Double(Float):
 class Void(DataType):
     additional_names: ClassVar[tuple[str, ...]] = ('void',)
 
-    @property
-    def bytes_value(self):
-        raise Exception("No value")
+    def convert_from_bytes(self, bytes_value: bytearray) -> Any:
+        raise TypeError("Void doesn't support pretty_value")
 
-    @bytes_value.setter
-    def bytes_value(self, value):
-        raise Exception("No value")
+    def convert_to_bytes(self, integer_value: Any) -> bytearray:
+        raise TypeError("Void doesn't support pretty_value")
 
 
 class Func(DataType):
     additional_names = ('func',)
 
-    @property
-    def bytes_value(self):
-        raise NotImplementedError("No value")
+    def convert_from_bytes(self, bytes_value: bytearray) -> Any:
+        raise TypeError("Func doesn't support pretty_value")
 
-    @bytes_value.setter
-    def bytes_value(self, value):
-        raise Exception("No value")
+    def convert_to_bytes(self, integer_value: Any) -> bytearray:
+        raise TypeError("Func doesn't support pretty_value")
