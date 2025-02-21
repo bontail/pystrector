@@ -12,3 +12,21 @@ update-python-source:
 
 generate-core-datatypes: update-python-source
 	export PYTHONPATH="${printenv PYTHONPATH}:${shell pwd}" && cd ./pystrector/code_generator && uv run python3 generate_code.py
+
+
+
+tests:
+	uv run python -W ignore -m unittest tests/test*
+
+
+
+ruff:
+	uv run python -m ruff check .
+
+
+mypy:
+	uv run python -m mypy --config-file pyproject.toml --check-untyped-defs --follow-imports=silent .
+
+
+
+check: tests ruff mypy
