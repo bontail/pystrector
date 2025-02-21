@@ -161,7 +161,7 @@ class DataType(metaclass=DataTypeMeta):
 
     def __set_name__(self, owner: Any, name: str) -> None:
         if self.__ptr != 0:
-            raise Exception("Don't use 'ptr' for Descriptor objects")
+            raise TypeError("Don't use 'ptr' for Descriptor objects")
 
         self.field_name = name
 
@@ -237,7 +237,8 @@ class DataType(metaclass=DataTypeMeta):
         return datatype(ptr=self.address)
 
     def cast(self):
-        if self.__class__.__name__ != "_object":
+        from pystrector.core_datatypes import _object
+        if not isinstance(self, _object):
             raise TypeError("Autocast work only with _object")
 
         from pystrector import Binder
@@ -267,7 +268,9 @@ class Pointer(DataType):
 
     def __add__(self, item: int) -> Pointer:
         if not isinstance(item, int):
-            raise Exception(f"Item must be int, not {type(item)}")
+            raise TypeError(
+                f"Item must be an int, not {type(item)}"
+            )
 
         new_instance = self.__class__(ptr=self.address,
                                       datatype=self.__datatype)
@@ -297,9 +300,23 @@ class Pointer(DataType):
 
     def __getitem__(self, item: int) -> DataType:
         if not isinstance(item, int):
-            raise Exception(f"Item must be int, not {type(item)}")
+            raise TypeError(f"Item must be int, not {type(item)}")
 
         return +(self + item)
+
+    def __setitem__(self, key: int, value: DataType) -> None:
+        if not isinstance(key, int):
+            raise TypeError(f"Item must be int, not {type(key)}")
+
+        from pystrector.core_datatypes import _object
+        instance = self
+        if isinstance(self, _object):
+            instance = self.cast()
+        if isinstance(value, _object):
+            value = value.cast()
+        (+(instance + key)).bytes_value = value.bytes_value
+
+        return None
 
     def set_arr_index(self, index: int) -> None:
         self.__arr_index = index
@@ -337,10 +354,14 @@ class Array(Pointer):
 
     def __setitem__(self, key: int, value: bytearray) -> None:
         if not isinstance(key, int):
-            raise Exception(f"Key must be int, not {type(key)}")
+            raise TypeError(
+                f"Key must be an int, not {type(key)}"
+            )
 
         if not isinstance(value, bytearray):
-            raise Exception(f"Value must be bytearray, not {type(value)}")
+            raise TypeError(
+                f"Value must be bytearray, not {type(value)}"
+            )
 
         instance = self[key]
         instance.value = value
