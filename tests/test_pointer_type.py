@@ -64,7 +64,7 @@ class TestPointer(unittest.TestCase):
         second_numbers = {4, 5, 6}
         first_reflector = binder.bind(first_numbers)
         second_reflector = binder.bind(second_numbers)
-        first_table = first_reflector.table
+        first_table_bytes_value = first_reflector.table.bytes_value
         first_reflector.table.bytes_value = second_reflector.table.bytes_value
         self.assertEqual(first_numbers, second_numbers)
-        first_reflector.table.bytes_value = first_table.bytes_value
+        first_reflector.table.bytes_value = first_table_bytes_value
