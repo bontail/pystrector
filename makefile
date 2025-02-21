@@ -11,4 +11,4 @@ update-python-source:
 
 
 generate-core-datatypes: update-python-source
-	export PYTHONPATH="${printenv PYTHONPATH}:${shell pwd}" && cd ./pystrector/code_generator && poetry run python3 generate_code.py
+	export PYTHONPATH="${printenv PYTHONPATH}:${shell pwd}" && cd ./pystrector/code_generator && uv run python3 generate_code.py
