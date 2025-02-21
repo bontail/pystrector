@@ -352,20 +352,6 @@ class Array(Pointer):
     def ptr_for_unpacking(self) -> int:
         return self.address
 
-    def __setitem__(self, key: int, value: bytearray) -> None:
-        if not isinstance(key, int):
-            raise TypeError(
-                f"Key must be an int, not {type(key)}"
-            )
-
-        if not isinstance(value, bytearray):
-            raise TypeError(
-                f"Value must be bytearray, not {type(value)}"
-            )
-
-        instance = self[key]
-        instance.value = value
-
 
 class BaseNumber(DataType):
     signed = True
