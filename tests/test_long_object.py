@@ -25,8 +25,8 @@ class TestInt(unittest.TestCase):
             )
 
     def test_type(self):
-        first_type_address = binder.bind(1).ob_base.ob_type.pretty_value
-        second_type_address = binder.bind(2).ob_base.ob_type.pretty_value
+        first_type_address = binder.bind(1).ob_base.ob_type.bytes_value
+        second_type_address = binder.bind(2).ob_base.ob_type.bytes_value
         self.assertEqual(first_type_address, second_type_address)
 
     def test_long_value(self):

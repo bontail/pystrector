@@ -28,6 +28,6 @@ class TestGeneral(unittest.TestCase):
         for j in range(i):
             setentry = (+(reflector.table + j))
             first = ((+setentry.key).cast_to(_longobject).long_value.ob_digit.
-                     pretty_value)
-            second = (+setentry.key).cast().long_value.ob_digit.pretty_value
+                     bytes_value)
+            second = (+setentry.key).cast().long_value.ob_digit.bytes_value
             self.assertEqual(first, second)
