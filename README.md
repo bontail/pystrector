@@ -71,6 +71,25 @@ class _longobject(DataType, is_union=False):
     long_value = _PyLongValue()
 ```
 
+If an object contains an anonymous_var, then you can go straight to the fields of this object
+
+```python
+class anonymous_1(DataType, is_union=True):
+    ob_refcnt = LongLong()
+    ob_refcnt_split = UnsignedInt[2]
+
+    
+class _object(DataType, is_union=False):
+    anonymous_var_1 = anonymous_1()
+    ob_type = Pointer(datatype="_typeobject")
+
+
+some_object = 1
+reflector = binder.bind(some_object).cast_to(_object)
+# print(reflector.anonymous_var_1.ob_refcnt.pretty_value)
+print(reflector.ob_refcnt.pretty_value)
+```
+
 For each type, you can call pretty_value and bytes_value <br>
 **pretty_value** - will result in the most similar type in Python <br>
 **bytes_value** - always returns bytearray <br>
