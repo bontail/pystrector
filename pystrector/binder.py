@@ -1,4 +1,3 @@
-import sys
 import ctypes
 from typing import Any, TypeAlias, ClassVar
 from pystrector.base_datatypes import DataTypeMeta
