@@ -4,20 +4,21 @@ update-python-source:
 	git clone -b $(python-version) --single-branch https://github.com/python/cpython.git
 	cd cpython && ./configure
 	cd cpython/Include && cp ../pyconfig.h ./pyconfig.h
-	cd cpython/Include && sed -i '' '1s/^/#define sizeof_def___int32_t 4\n#define sizeof_def_size_t 8\n#define sizeof_a(type) sizeof_def_##type\n#define sizeof(type) sizeof_a(type)\n/' Python.h
-	gcc-14 -E ./cpython/Include/Python.h -std=c99 > ./pystrector/code_generator/staticfiles/python_structures.c
+	uv run python prepare_source_code.py
+	gcc-14 -E ./cpython/Include/Python.h -std=c99 > ./python_structures.c
 	rm -rf cpython/
 
 
 
-generate-core-datatypes: update-python-source
-	export PYTHONPATH="${printenv PYTHONPATH}:${shell pwd}" && cd ./pystrector/code_generator && uv run python3 generate_code.py
+generate-core-datatypes:
+	export PYTHONPATH="${printenv PYTHONPATH}:${shell pwd}" && uv run python3 pystrector/code_generator/generate_code.py python_structures.c core_datatypes.py
+	mv core_datatypes.py pystrector/core_datatypes.py
+	rm python_structures.c
 
 
 
-tests:
+unittests:
 	uv run python -W ignore -m unittest tests/test*
-
 
 
 ruff:
@@ -28,5 +29,4 @@ mypy:
 	uv run python -m mypy --config-file pyproject.toml --check-untyped-defs --follow-imports=silent .
 
 
-
-check: tests ruff mypy
+check: unittests ruff mypy

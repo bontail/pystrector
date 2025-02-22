@@ -1,18 +1,24 @@
 from __future__ import annotations
+import argparse
+import os
 from typing import ClassVar, assert_never
 from pycparser import parse_file  # noqa
 from dataclasses import dataclass
 from pycparser.c_ast import Decl, Typedef, PtrDecl, Struct, \
     ArrayDecl, TypeDecl, IdentifierType, Union, FuncDecl, Enum, Node, \
-    BinaryOp, Constant, UnaryOp, TernaryOp
+    BinaryOp, Constant, UnaryOp, TernaryOp, Typename, ID
 from pystrector.base_datatypes import DataTypeMeta, Void, Int, Func, Array, \
     Pointer, UnsignedInt, LongLong, UnsignedLongLong, Byte, Bool, \
     UnsignedByte, Short, UnsignedShort, Float, Double, DataType, \
     get_anonymous_var_name
 from pystrector.code_generator.prepare_c_file import prepare_c_file
 
-
 ANONYMOUS_STRUCT_ID = 1
+
+SIZES = {
+    "__int32_t": "4",
+    "double": "8",
+}
 
 
 def get_anonymous_struct_name() -> str:
@@ -28,11 +34,20 @@ def get_expr_from_binary_op(node: Node) -> str:
         return node.value
 
     elif isinstance(node, UnaryOp):
+        if node.op == 'sizeof':
+            exp = get_expr_from_binary_op(node.expr)
+            size = SIZES.get(exp)
+            if size is None and exp.startswith("\""):
+                size = f"{len(exp) - 2}"
+            if size is None:
+                ValueError("Invalid code")
+            return f'({size})'
         return f'({node.op + get_expr_from_binary_op(node.expr)})'
 
     elif isinstance(node, BinaryOp):
+        op = "//" if node.op == "/" else node.op
         return f'({get_expr_from_binary_op(node.left) +
-                   node.op +
+                   op +
                    get_expr_from_binary_op(node.right)})'
 
     elif isinstance(node, TernaryOp):
@@ -43,6 +58,12 @@ def get_expr_from_binary_op(node: Node) -> str:
             return get_expr_from_binary_op(node.iffalse)
 
     elif node is None:
+        return '0'
+
+    elif isinstance(node, Typename):
+        return get_type(node.type, node)
+
+    elif isinstance(node, ID):
         return '0'
 
     else:
@@ -56,22 +77,22 @@ def get_dimensions(node: ArrayDecl) -> int:
     return int(eval(get_expr_from_binary_op(node.dim)))
 
 
-def get_type(node: Node, parent_node: Node) -> str:
+def get_type(node: Node, parent_node: Node, type_prefix: str = "") -> str:
     """Get type and create CoreDataTypePrototype if it is Union or Struct."""
     if isinstance(node, IdentifierType):
         return ' '.join(node.names)
 
     elif isinstance(node, PtrDecl):
-        return f'*{get_type(node.type, node)}'
+        return f'*{get_type(node.type, node, type_prefix)}'
 
     elif isinstance(node, ArrayDecl):
-        return f'[{get_dimensions(node)}]{get_type(node.type, node)}'
+        return f'[{get_dimensions(node)}]{get_type(node.type, node, type_prefix)}'
 
     elif isinstance(node, TypeDecl):
-        return get_type(node.type, node)
+        return get_type(node.type, node, type_prefix)
 
     elif isinstance(node, Struct) or isinstance(node, Union):
-        prototype = CoreDataTypePrototype.from_node(node, parent_node)
+        prototype = CoreDataTypePrototype.from_node(node, parent_node, type_prefix)
         if prototype.fields is None:
             # struct is useless
             return Void.__name__
@@ -124,7 +145,7 @@ class CoreDataTypePrototypeField:
     type: str
 
     @classmethod
-    def from_node(cls, node: Struct | Union) -> \
+    def from_node(cls, node: Struct | Union, type_prefix: str) -> \
             list[CoreDataTypePrototypeField]:
         """Create CoreDataTypePrototypeField from node."""
         if node.decls is None:
@@ -133,7 +154,8 @@ class CoreDataTypePrototypeField:
         fields: list[CoreDataTypePrototypeField] = []
         for decl in node.decls:
             name = decl.name if decl.name else get_anonymous_var_name()
-            datatype = get_type(decl.type, decl)
+            name = name.replace("__", "_")
+            datatype = get_type(decl.type, decl, type_prefix)
             datatype = datatype.replace("__", "_")
             fields.append(CoreDataTypePrototypeField(
                 name=name,
@@ -148,20 +170,20 @@ class CoreDataTypePrototypeField:
         """Parse field type and return str for Python code."""
         if field_type.startswith("*"):
             return (
-                f"Pointer(datatype={cls.parse_field_type(
+                f"{Pointer.__name__}(datatype={cls.parse_field_type(
                     field_type[1:],
                     written_class_names,
                 )})"
             )
 
-        if field_type.startswith("["):
+        elif field_type.startswith("["):
             end_arr = field_type.index(']')
             arr_type = cls.parse_field_type(
                 field_type[end_arr + 1:],
                 written_class_names,
             )
-            if field_type[end_arr + 1] == "*":
-                return (f"Array(datatype={arr_type},"
+            if arr_type.startswith(Pointer.__name__):
+                return (f"{Array.__name__}(datatype={arr_type},"
                         f" length={field_type[1:end_arr]})")
 
             else:
@@ -198,20 +220,20 @@ class CoreDataTypePrototype:
     is_union: bool = False
 
     @classmethod
-    def from_node(cls, node: Struct | Union | TypeDecl, parent_node: Node) \
-            -> CoreDataTypePrototype:
+    def from_node(cls, node: Struct | Union | TypeDecl, parent_node: Node,
+                  name_prefix: str = "") -> CoreDataTypePrototype:
         """Create CoreDataTypePrototype from node and register it."""
         name = node.name
         if name is None:
             if isinstance(parent_node, TypeDecl):
-                name = parent_node.declname
+                name = name_prefix + parent_node.declname
             else:
                 name = get_anonymous_struct_name()
         name = name.replace('__', '_')
 
         new_prototype = CoreDataTypePrototype(
             name=name,
-            fields=CoreDataTypePrototypeField.from_node(node),
+            fields=CoreDataTypePrototypeField.from_node(node, name + "_"),
             is_union=isinstance(node, Union),
         )
 
@@ -221,12 +243,18 @@ class CoreDataTypePrototype:
         return new_prototype
 
 
-def main():
-    source_filename = './staticfiles/python_structures.c'
-    prepared_filename = './staticfiles/prepared_python_structures.c'
-    prepare_c_file(source_filename, prepared_filename)
+def main(source_code_filename: str, python_code_filename: str):
+    if not source_code_filename.endswith(".c"):
+        raise ValueError("Source code file must be end with .c")
 
-    ast = parse_file(prepared_filename)
+    if not python_code_filename.endswith(".py"):
+        raise ValueError("Python code file must be end with .py")
+
+    source_temp_filename = 'prepared_python_structures.c'
+    prepare_c_file(source_code_filename, source_temp_filename)
+
+    ast = parse_file(source_temp_filename)
+    os.remove(source_temp_filename)
 
     for node in ast:
         if not isinstance(node, Typedef) and not isinstance(node, Decl):
@@ -235,7 +263,6 @@ def main():
         handle_node(node)
 
     # now we have all prototypes in CoreDataTypePrototype.registered_prototypes
-    core_datatypes_file = '../core_datatypes.py'
     written_class_names: set[str] = {
         Array.__name__, Bool.__name__, Byte.__name__,
         UnsignedByte.__name__, Short.__name__, UnsignedShort.__name__,
@@ -249,7 +276,7 @@ def main():
         f')'
     )
 
-    with open(core_datatypes_file, 'w') as file:
+    with open(python_code_filename, 'w') as file:
         file.write(core_datatypes_file_imports)
         for prototype in CoreDataTypePrototype.registered_prototypes:
             file.write(
@@ -266,4 +293,13 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='Generate Python code.')
+    parser.add_argument(
+        'source_code_filename', type=str
+    )
+    parser.add_argument(
+        'python_code_filename', type=str
+    )
+    args = parser.parse_args()
+
+    main(args.source_code_filename, args.python_code_filename)

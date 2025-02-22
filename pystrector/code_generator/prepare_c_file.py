@@ -31,6 +31,10 @@ def prepare_c_file(filename: str, new_filename: str) -> None:
         b'__asm', b')', get_bracket_counter_func()
     )
 
+    static_assert_filter = IntervalSequenceFilter(
+        b'static_assert', b')', get_bracket_counter_func()
+    )
+
     nonnull_filter = SequenceEqualsFilter(b'_Nonnull')
     inline_filter = SequenceEqualsFilter(b'__inline')
     extension_filter = SequenceEqualsFilter(b'__extension__')
@@ -40,6 +44,7 @@ def prepare_c_file(filename: str, new_filename: str) -> None:
         comment_filter,
         attribute_filter,
         asm_filter,
+        static_assert_filter,
         nonnull_filter,
         inline_filter,
         extension_filter,
