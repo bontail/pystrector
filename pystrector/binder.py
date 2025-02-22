@@ -1,3 +1,4 @@
+import sys
 import ctypes
 from typing import Any, TypeAlias, ClassVar
 from pystrector.base_datatypes import DataTypeMeta
@@ -10,7 +11,9 @@ from pystrector.core_datatypes import PyByteArrayObject, \
     PyUnicodeErrorObject, PySystemExitObject, PyOSErrorObject, \
     PyStopIterationObject, PyNameErrorObject, PyAttributeErrorObject, \
     _PyDictViewObject, PyAsyncGenObject, PyCodeObject, PyCellObject, \
-    PyCoroObject, PyMethodObject, PyInstanceMethodObject, _object, _traceback
+    PyCoroObject, PyMethodObject, PyInstanceMethodObject, _object, \
+    _traceback, PyModuleObject, _PyTupleIterObject, _PyListIterObject, \
+    propertyobject, _frame, _PyRangeIterObject
 
 UsedDataType: TypeAlias = (
         PyByteArrayObject | PyBytesObject | PyUnicodeObject | PyFloatObject |
@@ -22,7 +25,9 @@ UsedDataType: TypeAlias = (
         PyOSErrorObject | PyStopIterationObject | PyNameErrorObject |
         PyAttributeErrorObject | _PyDictViewObject | PyAsyncGenObject |
         PyCodeObject | PyCellObject | PyCoroObject | PyMethodObject |
-        PyInstanceMethodObject | _traceback
+        PyInstanceMethodObject | _traceback | PyModuleObject |
+        _PyTupleIterObject | _PyListIterObject | propertyobject | _frame |
+        _PyRangeIterObject
 )
 
 
@@ -101,6 +106,13 @@ class Binder:
             1 / 0
         except ZeroDivisionError as e:
             cls.make_bind(e.__traceback__, _traceback)
+
+        cls.make_bind(ctypes, PyModuleObject)
+        cls.make_bind(iter(tuple()), _PyTupleIterObject)
+        cls.make_bind(iter(list()), _PyListIterObject)
+        cls.make_bind(property(lambda _: _), propertyobject)
+        cls.make_bind(sys._getframe(), _frame)
+        cls.make_bind(iter(range(1)), _PyRangeIterObject)
 
     def __init__(self) -> None:
         if not self.__class__.cls_to_datatype:
