@@ -1,3 +1,4 @@
+import sys
 import ctypes
 from typing import Any, TypeAlias, ClassVar
 from pystrector.base_datatypes import DataTypeMeta
@@ -10,7 +11,7 @@ from pystrector.core_datatypes import PyByteArrayObject, \
     PyUnicodeErrorObject, PySystemExitObject, PyOSErrorObject, \
     PyStopIterationObject, PyNameErrorObject, PyAttributeErrorObject, \
     _PyDictViewObject, PyAsyncGenObject, PyCodeObject, PyCellObject, \
-    PyCoroObject, PyMethodObject, PyInstanceMethodObject, _object
+    PyCoroObject, PyMethodObject, PyInstanceMethodObject, _object, _traceback
 
 UsedDataType: TypeAlias = (
         PyByteArrayObject | PyBytesObject | PyUnicodeObject | PyFloatObject |
@@ -22,7 +23,7 @@ UsedDataType: TypeAlias = (
         PyOSErrorObject | PyStopIterationObject | PyNameErrorObject |
         PyAttributeErrorObject | _PyDictViewObject | PyAsyncGenObject |
         PyCodeObject | PyCellObject | PyCoroObject | PyMethodObject |
-        PyInstanceMethodObject
+        PyInstanceMethodObject | _traceback
 )
 
 
@@ -96,6 +97,11 @@ class Binder:
                 yield i
 
         cls.make_bind(async_generator(), PyAsyncGenObject)
+
+        try:
+            1 / 0
+        except ZeroDivisionError as e:
+            cls.make_bind(e.__traceback__, _traceback)
 
     def __init__(self) -> None:
         if not self.__class__.cls_to_datatype:
