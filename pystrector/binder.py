@@ -53,7 +53,7 @@ class Binder:
         cls.make_bind(ImportError(), PyImportErrorObject)
         cls.make_bind(UnicodeError(), PyUnicodeErrorObject)
         cls.make_bind(SystemExit(), PySystemExitObject)
-        cls.make_bind(SystemError(), PyOSErrorObject)
+        cls.make_bind(OSError(), PyOSErrorObject)
         cls.make_bind(StopIteration(), PyStopIterationObject)
         cls.make_bind(NameError(), PyNameErrorObject)
         cls.make_bind(AttributeError(), PyAttributeErrorObject)
@@ -111,8 +111,16 @@ class Binder:
 
         The wrapper keeps a strong reference to obj, so the memory it
         points to stays valid as long as the wrapper is alive.
+
+        Unknown types fall back to the closest bound ancestor in the MRO:
+        a subclass shares the C layout of its base unless it adds fields.
         """
-        datatype = Binder.cls_to_datatype.get(type(obj))
+        datatype = None
+        for klass in type(obj).__mro__:
+            datatype = Binder.cls_to_datatype.get(klass)
+            if datatype is not None:
+                break
+
         if datatype is None:
             raise TypeError(
                 f"pystrector doesn't know the internal structure of"

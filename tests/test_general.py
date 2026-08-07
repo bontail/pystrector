@@ -34,6 +34,38 @@ class TestGeneral(unittest.TestCase):
             1,
         )
 
+    def test_oserror_binding(self):
+        from pystrector.core_datatypes import PyOSErrorObject
+        reflector = binder.bind(OSError(2, "No such file"))
+        self.assertIsInstance(reflector, PyOSErrorObject)
+        self.assertEqual(
+            (+reflector.myerrno).cast().long_value.ob_digit[0].pretty_value,
+            2,
+        )
+
+    def test_bind_falls_back_to_mro(self):
+        from pystrector.core_datatypes import PyBaseExceptionObject, \
+            PyListObject
+
+        # SystemError adds no fields over PyBaseExceptionObject
+        self.assertIsInstance(binder.bind(SystemError()),
+                              PyBaseExceptionObject)
+        self.assertIsInstance(binder.bind(ValueError()),
+                              PyBaseExceptionObject)
+
+        class MyList(list):
+            pass
+
+        reflector = binder.bind(MyList([1, 2]))
+        self.assertIsInstance(reflector, PyListObject)
+        self.assertEqual(reflector.ob_base.ob_size.pretty_value, 2)
+
+        class Plain:
+            pass
+
+        with self.assertRaises(TypeError):
+            binder.bind(Plain())
+
     def test_casts(self):
         i = 21  # random number
         numbers = set(range(0, i))
