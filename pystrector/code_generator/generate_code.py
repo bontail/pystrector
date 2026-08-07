@@ -40,7 +40,7 @@ def get_expr_from_binary_op(node: Node) -> str:
             if size is None and exp.startswith("\""):
                 size = f"{len(exp) - 2}"
             if size is None:
-                ValueError("Invalid code")
+                raise ValueError("Invalid code")
             return f'({size})'
         return f'({node.op + get_expr_from_binary_op(node.expr)})'
 
@@ -74,6 +74,8 @@ def get_dimensions(node: ArrayDecl) -> int:
     if not isinstance(node, ArrayDecl):
         assert_never(node)
 
+    # eval is acceptable here: the expression comes from CPython headers
+    # parsed at code-generation time, not from user input
     return int(eval(get_expr_from_binary_op(node.dim)))
 
 

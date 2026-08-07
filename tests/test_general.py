@@ -20,6 +20,20 @@ class TestGeneral(unittest.TestCase):
         reflector = binder.bind(1)
         _ = reflector.ob_base.ob_refcnt
 
+    def test_temporary_object_stays_alive(self):
+        # the reflector holds a strong reference to the bound object,
+        # so binding a temporary must not leave a dangling pointer
+        import gc
+        reflector = binder.bind([1, 2, 3])
+        gc.collect()
+        self.assertEqual(reflector.ob_base.ob_size.pretty_value, 3)
+        self.assertEqual(
+            reflector.ob_item[0][0].cast_to(
+                _longobject
+            ).long_value.ob_digit[0].pretty_value,
+            1,
+        )
+
     def test_casts(self):
         i = 21  # random number
         numbers = set(range(0, i))

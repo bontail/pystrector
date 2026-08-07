@@ -1,7 +1,7 @@
 import sys
 import ctypes
-from typing import Any, TypeAlias, ClassVar
-from pystrector.base_datatypes import DataTypeMeta
+from typing import Any, ClassVar
+from pystrector.base_datatypes import DataType, DataTypeMeta
 from pystrector.core_datatypes import PyByteArrayObject, \
     PyBytesObject, PyUnicodeObject, PyFloatObject, PyComplexObject, \
     PyMemoryViewObject, PyTupleObject, PyListObject, PyDictObject, \
@@ -14,21 +14,6 @@ from pystrector.core_datatypes import PyByteArrayObject, \
     PyCoroObject, PyMethodObject, PyInstanceMethodObject, _object, \
     _traceback, PyModuleObject, _PyTupleIterObject, _PyListIterObject, \
     propertyobject, _frame, _PyRangeIterObject
-
-UsedDataType: TypeAlias = (
-        PyByteArrayObject | PyBytesObject | PyUnicodeObject | PyFloatObject |
-        PyComplexObject | PyMemoryViewObject | PyTupleObject | PyListObject |
-        PyDictObject | PySetObject | PySliceObject | PyGenObject |
-        PyFunctionObject | _longobject | _typeobject | PyBaseExceptionObject |
-        PyBaseExceptionGroupObject | PySyntaxErrorObject |
-        PyImportErrorObject | PyUnicodeErrorObject | PySystemExitObject |
-        PyOSErrorObject | PyStopIterationObject | PyNameErrorObject |
-        PyAttributeErrorObject | _PyDictViewObject | PyAsyncGenObject |
-        PyCodeObject | PyCellObject | PyCoroObject | PyMethodObject |
-        PyInstanceMethodObject | _traceback | PyModuleObject |
-        _PyTupleIterObject | _PyListIterObject | propertyobject | _frame |
-        _PyRangeIterObject
-)
 
 
 class Binder:
@@ -94,7 +79,9 @@ class Binder:
         async def coro():
             pass
 
-        cls.make_bind(coro(), PyCoroObject)
+        coro_obj = coro()
+        cls.make_bind(coro_obj, PyCoroObject)
+        coro_obj.close()
 
         async def async_generator():
             for i in range(10):
@@ -119,6 +106,20 @@ class Binder:
             self.__class__.make_binds()
 
     @staticmethod
-    def bind(obj: Any) -> UsedDataType:
-        """Return the wrapper object."""
-        return Binder.cls_to_datatype[type(obj)](ptr=id(obj))
+    def bind(obj: Any) -> DataType:
+        """Return the wrapper object.
+
+        The wrapper keeps a strong reference to obj, so the memory it
+        points to stays valid as long as the wrapper is alive.
+        """
+        datatype = Binder.cls_to_datatype.get(type(obj))
+        if datatype is None:
+            raise TypeError(
+                f"pystrector doesn't know the internal structure of"
+                f" {type(obj).__name__!r} objects"
+            )
+
+        instance = datatype(ptr=id(obj))
+        instance._pystr_keepalive = obj
+
+        return instance

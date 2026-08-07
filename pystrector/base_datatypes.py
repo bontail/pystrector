@@ -1,14 +1,12 @@
 from __future__ import annotations
+from copy import copy
 from typing import Any, ClassVar
 from pystrector.utils import get_bytes_value, set_bytes_value
 from struct import unpack, pack
-import textwrap
 
 
 ANONYMOUS_VAR_PREFIX: str = "anonymous_var"
 ANONYMOUS_VAR_ID: int = 1
-
-PRIVATE_ATTRS_PREFIX: str = "_PRIVATE_ATTR_"
 
 
 def get_anonymous_var_name() -> str:
@@ -18,8 +16,14 @@ def get_anonymous_var_name() -> str:
     return f"{ANONYMOUS_VAR_PREFIX}_{ANONYMOUS_VAR_ID - 1}"
 
 
+def align(offset: int, alignment: int) -> int:
+    """Round offset up to the nearest multiple of alignment."""
+    return (offset + alignment - 1) // alignment * alignment
+
+
 class DataTypeMeta(type):
     typedefs: ClassVar[dict[str, str]] = {}
+    registry: ClassVar[dict[str, DataTypeMeta]] = {}
     additional_names: tuple[str, ...]
     size: int
 
@@ -68,22 +72,26 @@ class DataTypeMeta(type):
         return len(self.fields) > 0
 
     def calculate_size(cls, is_union: bool) -> None:
-        """Calculate size of composite datatype."""
+        """Calculate size of composite datatype with C padding rules."""
         size = 0
+        alignment = 1
         for field_name in cls.fields:
             datatype_obj: DataType = cls.__dict__[field_name]
+            field_alignment = datatype_obj._pystr_alignment
+            alignment = max(alignment, field_alignment)
             if is_union:
                 size = max(size, datatype_obj.size)
             else:
-                size += datatype_obj.size
+                size = align(size, field_alignment) + datatype_obj.size
 
-        cls.size = size
+        cls.size = align(size, alignment)
 
     def update_offsets(cls) -> None:
         """Update offsets of composite datatype."""
         offset = 0
         for field_name in cls.fields:
             datatype_obj: DataType = cls.__dict__[field_name]
+            offset = align(offset, datatype_obj._pystr_alignment)
             datatype_obj.set_offset(offset)
             offset += datatype_obj.size
 
@@ -97,13 +105,17 @@ class DataTypeMeta(type):
             -> DataTypeMeta:
         instance = super().__new__(cls, name, bases, attrs)
         if instance.is_composite_type:
-            instance.calculate_size(is_union)
+            # offsets must be set while all field descriptors are still
+            # present: calculate_size() shadows a field named "size"
             if not is_union:
                 instance.update_offsets()
+            instance.calculate_size(is_union)
 
         if hasattr(instance, "additional_names"):
             for additional_name in instance.additional_names:
                 cls.create_typedef(additional_name, name)
+
+        cls.registry[name] = instance
 
         return instance
 
@@ -112,38 +124,19 @@ class DataTypeMeta(type):
 
 
 class DataType(metaclass=DataTypeMeta):
+    # instance attributes use the "_pystr_" prefix to avoid clashing with
+    # generated struct fields (CPython structs have fields named "size",
+    # "_offset", etc.)
     additional_names: ClassVar[tuple[str, ...]]
     size: int
-    __ptr: int
-    __offset: int
-    __value: bytearray
-
-    @staticmethod
-    def transform_name(cls, name: str) -> str:
-        parent_classes = [cls] + list(cls.__mro__)
-        for parent_cls in parent_classes:
-            cls_prefix = f"_{parent_cls.__name__}__"
-            if name.startswith(cls_prefix):
-                name = PRIVATE_ATTRS_PREFIX + name[len(cls_prefix):]
-                break
-        else:
-            if name.startswith("__") and not name.endswith("__"):
-                name = PRIVATE_ATTRS_PREFIX + name[2:]
-
-        return name
-
-    def __setattr__(self, key: str, value: Any) -> None:
-        key = self.transform_name(self.__class__, key)
-        super().__setattr__(key, value)
+    _pystr_ptr: int
+    _pystr_offset: int
+    _pystr_field_name: str
+    # strong reference to the bound Python object: keeps it alive so the
+    # memory this wrapper points to is not freed by the GC
+    _pystr_keepalive: Any
 
     def __getattr__(self, item: str) -> DataType:
-        value: DataType | None = self.__dict__.get(
-            self.transform_name(self.__class__, item),
-            None,
-        )
-        if value is not None:
-            return value
-
         for field_name in self.__class__.fields:
             if (field_name.startswith(ANONYMOUS_VAR_PREFIX) and
                     item in self.__class__.__dict__[
@@ -152,22 +145,49 @@ class DataType(metaclass=DataTypeMeta):
 
         raise AttributeError(item)
 
+    def __setattr__(self, key: str, value: Any) -> None:
+        if not key.startswith("_pystr_") and key not in self.__class__.fields:
+            # mirror __getattr__: allow writing to fields of anonymous
+            # members directly
+            for field_name in self.__class__.fields:
+                if (field_name.startswith(ANONYMOUS_VAR_PREFIX) and
+                        key in self.__class__.__dict__[
+                            field_name].__class__.fields):
+                    setattr(getattr(self, field_name), key, value)
+                    return None
+
+        return super().__setattr__(key, value)
+
     def __repr__(self) -> str:
         return f"{self.__class__.__name__} ({self.address})"
 
     def __init__(self, ptr: int = 0) -> None:
-        self.__ptr = ptr
-        self.__offset = 0
+        self._pystr_ptr = ptr
+        self._pystr_offset = 0
+        self._pystr_keepalive = None
+
+    @property
+    def _pystr_alignment(self) -> int:
+        """C alignment: max of field alignments for composite, else size."""
+        cls = self.__class__
+        if cls.is_composite_type:
+            return max(
+                cls.__dict__[field_name]._pystr_alignment
+                for field_name in cls.fields
+            )
+
+        return self.size
 
     def __set_name__(self, owner: Any, name: str) -> None:
-        if self.__ptr != 0:
+        if self._pystr_ptr != 0:
             raise TypeError("Don't use 'ptr' for Descriptor objects")
 
-        self.field_name = name
+        self._pystr_field_name = name
 
     def __get__(self, instance: DataType, owner: DataTypeMeta) -> DataType:
         new_instance = self.__class__(ptr=instance.address)
-        new_instance.set_offset(self.__offset)
+        new_instance.set_offset(self._pystr_offset)
+        new_instance._pystr_keepalive = instance._pystr_keepalive
 
         return new_instance
 
@@ -176,7 +196,7 @@ class DataType(metaclass=DataTypeMeta):
             raise TypeError(
                 f"Value must be an instance of DataType, not {type(value)}"
             )
-        obj = getattr(instance, self.field_name)
+        obj = getattr(instance, self._pystr_field_name)
         obj.bytes_value = value.bytes_value
 
     def __getitem__(self, item: int) -> DataType:
@@ -195,14 +215,14 @@ class DataType(metaclass=DataTypeMeta):
         )
 
     def set_offset(self, offset: int) -> None:
-        self.__offset = offset
+        self._pystr_offset = offset
 
     def set_ptr(self, ptr: int) -> None:
-        self.__ptr = ptr
+        self._pystr_ptr = ptr
 
     @property
     def address(self) -> int:
-        return self.__ptr + self.__offset
+        return self._pystr_ptr + self._pystr_offset
 
     @property
     def bytes_value(self):
@@ -215,6 +235,12 @@ class DataType(metaclass=DataTypeMeta):
         if not isinstance(bytes_value, bytearray):
             raise TypeError(
                 f"Value must be bytearray, not {type(bytes_value)}"
+            )
+
+        if len(bytes_value) != self.size:
+            raise ValueError(
+                f"Value must be exactly {self.size} bytes long,"
+                f" got {len(bytes_value)}"
             )
 
         set_bytes_value(self.address, bytes_value)
@@ -234,7 +260,10 @@ class DataType(metaclass=DataTypeMeta):
         return bytearray(value)
 
     def cast_to(self, datatype: DataTypeMeta) -> DataType:
-        return datatype(ptr=self.address)
+        instance = datatype(ptr=self.address)
+        instance._pystr_keepalive = self._pystr_keepalive
+
+        return instance
 
     def cast(self):
         from pystrector.core_datatypes import _object
@@ -242,27 +271,31 @@ class DataType(metaclass=DataTypeMeta):
             raise TypeError("Autocast work only with _object")
 
         from pystrector import Binder
-        return Binder.cls_to_datatype[
+        instance = Binder.cls_to_datatype[
             Binder.type_address_to_cls[self.ob_type.ptr_for_unpacking]
         ](ptr=self.address)
+        instance._pystr_keepalive = self._pystr_keepalive
+
+        return instance
 
 
 class Pointer(DataType):
     additional_names: ClassVar[tuple[str, ...]] = ('*',)
     size = 8
-    __datatype: str | DataType
-    __arr_index: int
+    _pystr_datatype: str | DataType
+    _pystr_arr_index: int
 
     def __init__(self, datatype: str | DataType, ptr: int = 0) -> None:
         super().__init__(ptr=ptr)
-        self.__datatype = datatype
-        self.__arr_index = 0
+        self._pystr_datatype = datatype
+        self._pystr_arr_index = 0
 
     def __get__(self, instance: DataType, owner: DataTypeMeta) -> Pointer:
         new_instance = self.__class__(
-            ptr=instance.address, datatype=self.__datatype
+            ptr=instance.address, datatype=self._pystr_datatype
         )
-        new_instance.set_offset(self.__offset)
+        new_instance.set_offset(self._pystr_offset)
+        new_instance._pystr_keepalive = instance._pystr_keepalive
 
         return new_instance
 
@@ -273,8 +306,9 @@ class Pointer(DataType):
             )
 
         new_instance = self.__class__(ptr=self.address,
-                                      datatype=self.__datatype)
-        new_instance.set_arr_index(item)
+                                      datatype=self._pystr_datatype)
+        new_instance.set_arr_index(self._pystr_arr_index + item)
+        new_instance._pystr_keepalive = self._pystr_keepalive
 
         return new_instance
 
@@ -283,18 +317,27 @@ class Pointer(DataType):
         return int.from_bytes(
             get_bytes_value(self.address, self.size),
             byteorder='little',
-            signed=True
+            signed=False
         )
 
     def __pos__(self) -> DataType:
         instance: DataType
-        if isinstance(self.__datatype, DataType):
-            instance = self.__datatype
+        if isinstance(self._pystr_datatype, DataType):
+            # copy so that two dereferences don't share (and overwrite)
+            # one instance
+            instance = copy(self._pystr_datatype)
+            instance.set_offset(0)
         else:
-            instance = globals()[self.__datatype]()
+            datatype_cls = DataTypeMeta.registry.get(self._pystr_datatype)
+            if datatype_cls is None:
+                raise TypeError(
+                    f"Unknown datatype {self._pystr_datatype!r}"
+                )
+            instance = datatype_cls()
 
-        index_offset = self.__arr_index * instance.size
+        index_offset = self._pystr_arr_index * instance.size
         instance.set_ptr(self.ptr_for_unpacking + index_offset)
+        instance._pystr_keepalive = self._pystr_keepalive
 
         return instance
 
@@ -309,17 +352,17 @@ class Pointer(DataType):
             raise TypeError(f"Item must be int, not {type(key)}")
 
         from pystrector.core_datatypes import _object
-        instance = self
-        if isinstance(self, _object):
-            instance = self.cast()
+        target = self[key]
+        if isinstance(target, _object):
+            target = target.cast()
         if isinstance(value, _object):
             value = value.cast()
-        (+(instance + key)).bytes_value = value.bytes_value
+        target.bytes_value = value.bytes_value
 
         return None
 
     def set_arr_index(self, index: int) -> None:
-        self.__arr_index = index
+        self._pystr_arr_index = index
 
     def convert_from_bytes(self, bytes_value: bytearray) -> int:
         raise TypeError("Pointer doesn't support pretty_value")
@@ -330,23 +373,46 @@ class Pointer(DataType):
 
 class Array(Pointer):
     additional_names: ClassVar[tuple[str, ...]] = ('[]',)
-    __datatype: DataType
+    _pystr_length: int
     size: int
 
     def __init__(self, datatype: DataType, length: int = 1, ptr: int = 0) \
             -> None:
         super().__init__(datatype, ptr)
-        self.__length = length
+        self._pystr_length = length
         self.size = datatype.size * length
 
     def __get__(self, instance: DataType, owner: DataTypeMeta) -> Array:
+        assert isinstance(self._pystr_datatype, DataType)
         new_instance = self.__class__(
-            ptr=instance.address, datatype=self.__datatype,
-            length=self.__length
+            ptr=instance.address, datatype=self._pystr_datatype,
+            length=self._pystr_length
         )
-        new_instance.set_offset(self.__offset)
+        new_instance.set_offset(self._pystr_offset)
+        new_instance._pystr_keepalive = instance._pystr_keepalive
 
         return new_instance
+
+    def __add__(self, item: int) -> Array:
+        if not isinstance(item, int):
+            raise TypeError(
+                f"Item must be an int, not {type(item)}"
+            )
+
+        assert isinstance(self._pystr_datatype, DataType)
+        new_instance = self.__class__(
+            ptr=self.address, datatype=self._pystr_datatype,
+            length=self._pystr_length
+        )
+        new_instance.set_arr_index(self._pystr_arr_index + item)
+        new_instance._pystr_keepalive = self._pystr_keepalive
+
+        return new_instance
+
+    @property
+    def _pystr_alignment(self) -> int:
+        assert isinstance(self._pystr_datatype, DataType)
+        return self._pystr_datatype._pystr_alignment
 
     @property
     def ptr_for_unpacking(self) -> int:
@@ -361,13 +427,11 @@ class BaseNumber(DataType):
                               signed=self.signed)
 
     def convert_to_bytes(self, integer_value: int) -> bytearray:
-        arr = bytearray(self.size)
-        hex_value = ("0" * bool(len(hex(integer_value)) % 2 == 1)) + hex(
-            integer_value)[2:]
-        for index, byte in enumerate(reversed(textwrap.wrap(hex_value, 2))):
-            arr[index] = int(byte, 16)
-
-        return arr
+        return bytearray(
+            integer_value.to_bytes(
+                self.size, byteorder='little', signed=self.signed
+            )
+        )
 
 
 class BaseSignedNumber(BaseNumber):
@@ -383,10 +447,10 @@ class Bool(DataType):
     size = 1
 
     def convert_from_bytes(self, bytes_value: bytearray) -> bool:
-        return all(map(lambda b: b == 255, bytes_value))
+        return any(bytes_value)
 
     def convert_to_bytes(self, bool_value: bool) -> bytearray:
-        return bytearray(int(bool_value).to_bytes())
+        return bytearray(int(bool_value).to_bytes(self.size, 'little'))
 
 
 class Byte(BaseSignedNumber):
@@ -403,43 +467,42 @@ class UnsignedByte(BaseUnsignedNumber):
     size = 1
 
 
-class Short(Byte):
+class Short(BaseSignedNumber):
     additional_names: ClassVar[tuple[str, ...]] = (
-        'short', 'signed short', 'signed short', 'signed short int',
+        'short', 'short int', 'signed short', 'signed short int',
     )
     size = 2
 
 
-class UnsignedShort(UnsignedByte):
+class UnsignedShort(BaseUnsignedNumber):
     additional_names: ClassVar[tuple[str, ...]] = (
         'unsigned short', 'unsigned short int')
     size = 2
 
 
-class Int(Short):
+class Int(BaseSignedNumber):
     additional_names: ClassVar[tuple[str, ...]] = (
         'int', 'signed', 'signed int')
     size = 4
 
 
-class UnsignedInt(UnsignedShort):
+class UnsignedInt(BaseUnsignedNumber):
     additional_names: ClassVar[tuple[str, ...]] = ('unsigned int', 'unsigned')
     size = 4
 
 
-class LongLong(Int):
+class LongLong(BaseSignedNumber):
     additional_names: ClassVar[tuple[str, ...]] = (
         'long long', 'long', 'long int', 'signed long', 'signed long int',
         'long long int', 'signed long long', 'signed long long int',
-        'long unsigned int',
     )
     size = 8
 
 
-class UnsignedLongLong(UnsignedInt):
+class UnsignedLongLong(BaseUnsignedNumber):
     additional_names: ClassVar[tuple[str, ...]] = (
         'unsigned long long', 'unsigned long', 'unsigned long int',
-        'unsigned long long int',
+        'unsigned long long int', 'long unsigned int',
     )
     size = 8
 

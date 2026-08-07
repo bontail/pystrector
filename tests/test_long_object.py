@@ -19,9 +19,10 @@ class TestInt(unittest.TestCase):
     def test_refcnt(self):
         for i in range(257, 1000):
             reflector = binder.bind(i)
+            # reflector itself holds one reference to i
             self.assertEqual(
                 reflector.ob_base.ob_refcnt.pretty_value,
-                getrefcount(i) - 1
+                getrefcount(i)
             )
 
     def test_type(self):
