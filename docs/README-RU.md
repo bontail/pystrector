@@ -29,6 +29,34 @@ python3 -m pip install pystrector
 
 ---
 
+### Поддерживаемые платформы
+
+Описания структур генерируются препроцессированием заголовков одной
+версии CPython на одной платформе, поэтому они непереносимы. pystrector
+проверяет это при импорте:
+
+| Предположение | При несовпадении |
+| --- | --- |
+| CPython 3.12 | `UnsupportedPlatformError` |
+| little endian | `UnsupportedPlatformError` |
+| 64-битные указатели | `UnsupportedPlatformError` |
+| LP64 (`sizeof(long) == 8`) — исключает Windows | `UnsupportedPlatformError` |
+| та же ОС и архитектура, что и у сгенерированного файла | `PlatformMismatchWarning` |
+
+Предупреждение не фатально: раскладка базовых объектов (`PyObject`,
+`list`, `int`, ...) на всех LP64-платформах одинакова, а вот
+платформозависимые структуры (pthread, состояние потока, учёт арен) —
+нет. Чтобы получить точные описания, перегенерируйте их:
+
+```shell
+make update-python-source python-version=v3.12.0
+make generate-core-datatypes
+```
+
+---
+
+---
+
 ### Git
 
 ```shell
