@@ -27,6 +27,8 @@ To install pystrector, enter the command.
 python3 -m pip install pystrector
 ```
 
+The package version matches the CPython version whose internal structures it describes (e.g. pystrector 3.12.x works with Python 3.12).
+
 ---
 
 ### Git
@@ -86,7 +88,8 @@ class _object(DataType, is_union=False):
 
 some_object = 1
 reflector = binder.bind(some_object).cast_to(_object)
-# print(reflector.anonymous_var_1.ob_refcnt.pretty_value)
+# the short form below is the same as
+# reflector.anonymous_var_1.ob_refcnt.pretty_value
 print(reflector.ob_refcnt.pretty_value)
 ```
 
@@ -105,7 +108,7 @@ You can also set values <br>
 **without parameters** - takes another object from the mapper <br>
 
 ```python
-reflector.ob_base.ob_refcnt.bytes_value = bytearray(1)
+reflector.ob_base.ob_refcnt.bytes_value = bytearray((1000).to_bytes(8, "little"))  # length must match the field size
 reflector.ob_base.ob_refcnt.pretty_value = 1000
 reflector.ob_base.ob_refcnt = binder.bind(7).ob_base.ob_refcnt
 ```
@@ -114,9 +117,9 @@ There is also work with pointers and arrays as in C
 
 ```python
 x = [1, 2, 3]
-print(binder.bind(x).ob_item[j][1])
-print(+(binder.bind(x).ob_item[j]))
-print(+(binder.bind(x).ob_item[j] + 1))
+print(binder.bind(x).ob_item[0][1])
+print(+(binder.bind(x).ob_item[0]))
+print(+(binder.bind(x).ob_item[0] + 1))
 ```
 
 You can convert mappers of some data types to others
