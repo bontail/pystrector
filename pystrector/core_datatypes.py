@@ -6,10 +6,10 @@
 GENERATED_ON = ('darwin', 'arm64')
 GENERATED_FOR_CPYTHON = (3, 12)
 
-from pystrector.base_datatypes import (UnsignedLongLong, UnsignedInt, LongLong, Void, Array, Pointer, Int, UnsignedByte, UnsignedShort, Float, Bool, Byte, Double, DataType, Func, Short)
+from pystrector.base_datatypes import (Byte, Pointer, Int, LongLong, Double, Void, DataType, BitField, Array, Bool, UnsignedInt, UnsignedShort, Short, UnsignedByte, Func, Float, UnsignedLongLong)
 
 class _mbstate_t(DataType, is_union=True):
-    _mbstate8 = Byte[128]
+    _mbstate8 = Array(datatype=Byte(), length=128)
     _mbstateL = LongLong()
 
 
@@ -21,48 +21,48 @@ class _darwin_pthread_handler_rec(DataType, is_union=False):
 
 class _opaque_pthread_attr_t(DataType, is_union=False):
     _sig = LongLong()
-    _opaque = Byte[56]
+    _opaque = Array(datatype=Byte(), length=56)
 
 
 class _opaque_pthread_cond_t(DataType, is_union=False):
     _sig = LongLong()
-    _opaque = Byte[40]
+    _opaque = Array(datatype=Byte(), length=40)
 
 
 class _opaque_pthread_condattr_t(DataType, is_union=False):
     _sig = LongLong()
-    _opaque = Byte[8]
+    _opaque = Array(datatype=Byte(), length=8)
 
 
 class _opaque_pthread_mutex_t(DataType, is_union=False):
     _sig = LongLong()
-    _opaque = Byte[56]
+    _opaque = Array(datatype=Byte(), length=56)
 
 
 class _opaque_pthread_mutexattr_t(DataType, is_union=False):
     _sig = LongLong()
-    _opaque = Byte[8]
+    _opaque = Array(datatype=Byte(), length=8)
 
 
 class _opaque_pthread_once_t(DataType, is_union=False):
     _sig = LongLong()
-    _opaque = Byte[8]
+    _opaque = Array(datatype=Byte(), length=8)
 
 
 class _opaque_pthread_rwlock_t(DataType, is_union=False):
     _sig = LongLong()
-    _opaque = Byte[192]
+    _opaque = Array(datatype=Byte(), length=192)
 
 
 class _opaque_pthread_rwlockattr_t(DataType, is_union=False):
     _sig = LongLong()
-    _opaque = Byte[16]
+    _opaque = Array(datatype=Byte(), length=16)
 
 
 class _opaque_pthread_t(DataType, is_union=False):
     _sig = LongLong()
     _cleanup_stack = Pointer(datatype=_darwin_pthread_handler_rec())
-    _opaque = Byte[8176]
+    _opaque = Array(datatype=Byte(), length=8176)
 
 
 class _darwin_arm_exception_state(DataType, is_union=False):
@@ -77,8 +77,13 @@ class _darwin_arm_exception_state64(DataType, is_union=False):
     _exception = UnsignedInt()
 
 
+class _darwin_arm_exception_state64_v2(DataType, is_union=False):
+    _far = UnsignedLongLong()
+    _esr = UnsignedLongLong()
+
+
 class _darwin_arm_thread_state(DataType, is_union=False):
-    _r = UnsignedInt[13]
+    _r = Array(datatype=UnsignedInt(), length=13)
     _sp = UnsignedInt()
     _lr = UnsignedInt()
     _pc = UnsignedInt()
@@ -86,7 +91,7 @@ class _darwin_arm_thread_state(DataType, is_union=False):
 
 
 class _darwin_arm_thread_state64(DataType, is_union=False):
-    _x = UnsignedLongLong[29]
+    _x = Array(datatype=UnsignedLongLong(), length=29)
     _fp = UnsignedLongLong()
     _lr = UnsignedLongLong()
     _sp = UnsignedLongLong()
@@ -96,18 +101,18 @@ class _darwin_arm_thread_state64(DataType, is_union=False):
 
 
 class _darwin_arm_vfp_state(DataType, is_union=False):
-    _r = UnsignedInt[64]
+    _r = Array(datatype=UnsignedInt(), length=64)
     _fpscr = UnsignedInt()
 
 
 class _darwin_arm_neon_state64(DataType, is_union=False):
-    _v = LongLong[32]
+    _v = Array(datatype=LongLong(), length=32)
     _fpsr = UnsignedInt()
     _fpcr = UnsignedInt()
 
 
 class _darwin_arm_neon_state(DataType, is_union=False):
-    _v = LongLong[16]
+    _v = Array(datatype=LongLong(), length=16)
     _fpsr = UnsignedInt()
     _fpcr = UnsignedInt()
 
@@ -117,30 +122,30 @@ class _arm_pagein_state(DataType, is_union=False):
 
 
 class _arm_legacy_debug_state(DataType, is_union=False):
-    _bvr = UnsignedInt[16]
-    _bcr = UnsignedInt[16]
-    _wvr = UnsignedInt[16]
-    _wcr = UnsignedInt[16]
+    _bvr = Array(datatype=UnsignedInt(), length=16)
+    _bcr = Array(datatype=UnsignedInt(), length=16)
+    _wvr = Array(datatype=UnsignedInt(), length=16)
+    _wcr = Array(datatype=UnsignedInt(), length=16)
 
 
 class _darwin_arm_debug_state32(DataType, is_union=False):
-    _bvr = UnsignedInt[16]
-    _bcr = UnsignedInt[16]
-    _wvr = UnsignedInt[16]
-    _wcr = UnsignedInt[16]
+    _bvr = Array(datatype=UnsignedInt(), length=16)
+    _bcr = Array(datatype=UnsignedInt(), length=16)
+    _wvr = Array(datatype=UnsignedInt(), length=16)
+    _wcr = Array(datatype=UnsignedInt(), length=16)
     _mdscr_el1 = UnsignedLongLong()
 
 
 class _darwin_arm_debug_state64(DataType, is_union=False):
-    _bvr = UnsignedLongLong[16]
-    _bcr = UnsignedLongLong[16]
-    _wvr = UnsignedLongLong[16]
-    _wcr = UnsignedLongLong[16]
+    _bvr = Array(datatype=UnsignedLongLong(), length=16)
+    _bcr = Array(datatype=UnsignedLongLong(), length=16)
+    _wvr = Array(datatype=UnsignedLongLong(), length=16)
+    _wcr = Array(datatype=UnsignedLongLong(), length=16)
     _mdscr_el1 = UnsignedLongLong()
 
 
 class _darwin_arm_cpmu_state64(DataType, is_union=False):
-    _ctrs = UnsignedLongLong[16]
+    _ctrs = Array(datatype=UnsignedLongLong(), length=16)
 
 
 class _darwin_mcontext32(DataType, is_union=False):
@@ -157,7 +162,7 @@ class _darwin_mcontext64(DataType, is_union=False):
 
 class _darwin_sigaltstack(DataType, is_union=False):
     ss_sp = Pointer(datatype=Void())
-    ss_size = LongLong()
+    ss_size = UnsignedLongLong()
     ss_flags = Int()
 
 
@@ -166,7 +171,7 @@ class _darwin_ucontext(DataType, is_union=False):
     uc_sigmask = UnsignedInt()
     uc_stack = _darwin_sigaltstack()
     uc_link = Pointer(datatype="_darwin_ucontext")
-    uc_mcsize = LongLong()
+    uc_mcsize = UnsignedLongLong()
     uc_mcontext = Pointer(datatype=_darwin_mcontext64())
 
 
@@ -193,7 +198,7 @@ class _siginfo(DataType, is_union=False):
     si_addr = Pointer(datatype=Void())
     si_value = sigval()
     si_band = LongLong()
-    _pad = UnsignedLongLong[7]
+    _pad = Array(datatype=UnsignedLongLong(), length=7)
 
 
 class _sigaction_u(DataType, is_union=True):
@@ -250,7 +255,7 @@ class rusage(DataType, is_union=False):
 
 
 class rusage_info_v0(DataType, is_union=False):
-    ri_uuid = UnsignedByte[16]
+    ri_uuid = Array(datatype=UnsignedByte(), length=16)
     ri_user_time = UnsignedLongLong()
     ri_system_time = UnsignedLongLong()
     ri_pkg_idle_wkups = UnsignedLongLong()
@@ -264,7 +269,7 @@ class rusage_info_v0(DataType, is_union=False):
 
 
 class rusage_info_v1(DataType, is_union=False):
-    ri_uuid = UnsignedByte[16]
+    ri_uuid = Array(datatype=UnsignedByte(), length=16)
     ri_user_time = UnsignedLongLong()
     ri_system_time = UnsignedLongLong()
     ri_pkg_idle_wkups = UnsignedLongLong()
@@ -284,7 +289,7 @@ class rusage_info_v1(DataType, is_union=False):
 
 
 class rusage_info_v2(DataType, is_union=False):
-    ri_uuid = UnsignedByte[16]
+    ri_uuid = Array(datatype=UnsignedByte(), length=16)
     ri_user_time = UnsignedLongLong()
     ri_system_time = UnsignedLongLong()
     ri_pkg_idle_wkups = UnsignedLongLong()
@@ -306,7 +311,7 @@ class rusage_info_v2(DataType, is_union=False):
 
 
 class rusage_info_v3(DataType, is_union=False):
-    ri_uuid = UnsignedByte[16]
+    ri_uuid = Array(datatype=UnsignedByte(), length=16)
     ri_user_time = UnsignedLongLong()
     ri_system_time = UnsignedLongLong()
     ri_pkg_idle_wkups = UnsignedLongLong()
@@ -337,7 +342,7 @@ class rusage_info_v3(DataType, is_union=False):
 
 
 class rusage_info_v4(DataType, is_union=False):
-    ri_uuid = UnsignedByte[16]
+    ri_uuid = Array(datatype=UnsignedByte(), length=16)
     ri_user_time = UnsignedLongLong()
     ri_system_time = UnsignedLongLong()
     ri_pkg_idle_wkups = UnsignedLongLong()
@@ -376,7 +381,7 @@ class rusage_info_v4(DataType, is_union=False):
 
 
 class rusage_info_v5(DataType, is_union=False):
-    ri_uuid = UnsignedByte[16]
+    ri_uuid = Array(datatype=UnsignedByte(), length=16)
     ri_user_time = UnsignedLongLong()
     ri_system_time = UnsignedLongLong()
     ri_pkg_idle_wkups = UnsignedLongLong()
@@ -416,7 +421,7 @@ class rusage_info_v5(DataType, is_union=False):
 
 
 class rusage_info_v6(DataType, is_union=False):
-    ri_uuid = UnsignedByte[16]
+    ri_uuid = Array(datatype=UnsignedByte(), length=16)
     ri_user_time = UnsignedLongLong()
     ri_system_time = UnsignedLongLong()
     ri_pkg_idle_wkups = UnsignedLongLong()
@@ -461,7 +466,10 @@ class rusage_info_v6(DataType, is_union=False):
     ri_penergy_nj = UnsignedLongLong()
     ri_secure_time_in_system = UnsignedLongLong()
     ri_secure_ptime_in_system = UnsignedLongLong()
-    ri_reserved = UnsignedLongLong[12]
+    ri_neural_footprint = UnsignedLongLong()
+    ri_lifetime_max_neural_footprint = UnsignedLongLong()
+    ri_interval_max_neural_footprint = UnsignedLongLong()
+    ri_reserved = Array(datatype=UnsignedLongLong(), length=9)
 
 
 class rlimit(DataType, is_union=False):
@@ -474,29 +482,17 @@ class proc_rlimit_control_wakeupmon(DataType, is_union=False):
     wm_rate = Int()
 
 
-class _OSUnalignedU16(DataType, is_union=False):
-    _val = UnsignedShort()
-
-
-class _OSUnalignedU32(DataType, is_union=False):
-    _val = UnsignedInt()
-
-
-class _OSUnalignedU64(DataType, is_union=False):
-    _val = UnsignedLongLong()
-
-
 class wait_w_T(DataType, is_union=False):
-    w_Termsig = UnsignedInt()
-    w_Coredump = UnsignedInt()
-    w_Retcode = UnsignedInt()
-    w_Filler = UnsignedInt()
+    w_Termsig = BitField(datatype=UnsignedInt(), bit_width=7)
+    w_Coredump = BitField(datatype=UnsignedInt(), bit_width=1)
+    w_Retcode = BitField(datatype=UnsignedInt(), bit_width=8)
+    w_Filler = BitField(datatype=UnsignedInt(), bit_width=16)
 
 
 class wait_w_S(DataType, is_union=False):
-    w_Stopval = UnsignedInt()
-    w_Stopsig = UnsignedInt()
-    w_Filler = UnsignedInt()
+    w_Stopval = BitField(datatype=UnsignedInt(), bit_width=8)
+    w_Stopsig = BitField(datatype=UnsignedInt(), bit_width=8)
+    w_Filler = BitField(datatype=UnsignedInt(), bit_width=16)
 
 
 class wait(DataType, is_union=True):
@@ -541,8 +537,8 @@ class _sFILE(DataType, is_union=False):
     _ub = _sbuf()
     _extra = Pointer(datatype="_sFILEX")
     _ur = Int()
-    _ubuf = UnsignedByte[3]
-    _nbuf = UnsignedByte[1]
+    _ubuf = Array(datatype=UnsignedByte(), length=3)
+    _nbuf = Array(datatype=UnsignedByte(), length=1)
     _lb = _sbuf()
     _blksize = Int()
     _offset = LongLong()
@@ -551,11 +547,11 @@ class _sFILE(DataType, is_union=False):
 class accessx_descriptor(DataType, is_union=False):
     ad_name_offset = UnsignedInt()
     ad_flags = Int()
-    ad_pad = Int[2]
+    ad_pad = Array(datatype=Int(), length=2)
 
 
 class fd_set(DataType, is_union=False):
-    fds_bits = Int[32]
+    fds_bits = Array(datatype=Int(), length=32)
 
 
 class timespec(DataType, is_union=False):
@@ -590,19 +586,19 @@ class _RuneRange(DataType, is_union=False):
 
 
 class _RuneCharClass(DataType, is_union=False):
-    _name = Byte[14]
+    _name = Array(datatype=Byte(), length=14)
     _mask = UnsignedInt()
 
 
 class _RuneLocale(DataType, is_union=False):
-    _magic = Byte[8]
-    _encoding = Byte[32]
+    _magic = Array(datatype=Byte(), length=8)
+    _encoding = Array(datatype=Byte(), length=32)
     _sgetrune = Pointer(datatype=Func())
     _sputrune = Pointer(datatype=Func())
     _invalid_rune = Int()
-    _runetype = UnsignedInt[256]
-    _maplower = Int[256]
-    _mapupper = Int[256]
+    _runetype = Array(datatype=UnsignedInt(), length=256)
+    _maplower = Array(datatype=Int(), length=256)
+    _mapupper = Array(datatype=Int(), length=256)
     _runetype_ext = _RuneRange()
     _maplower_ext = _RuneRange()
     _mapupper_ext = _RuneRange()
@@ -694,7 +690,7 @@ class stat(DataType, is_union=False):
     st_flags = UnsignedInt()
     st_gen = UnsignedInt()
     st_lspare = Int()
-    st_qspare = LongLong[2]
+    st_qspare = Array(datatype=LongLong(), length=2)
 
 
 class PyMemAllocatorEx(DataType, is_union=False):
@@ -721,7 +717,7 @@ class Py_buffer(DataType, is_union=False):
 
 class anonymous_1(DataType, is_union=True):
     ob_refcnt = LongLong()
-    ob_refcnt_split = UnsignedInt[2]
+    ob_refcnt_split = Array(datatype=UnsignedInt(), length=2)
 
 
 class _object(DataType, is_union=False):
@@ -913,17 +909,17 @@ class _Py_HashSecret_t_siphash(DataType, is_union=False):
 
 
 class _Py_HashSecret_t_djbx33a(DataType, is_union=False):
-    padding = UnsignedByte[16]
+    padding = Array(datatype=UnsignedByte(), length=16)
     suffix = LongLong()
 
 
 class _Py_HashSecret_t_expat(DataType, is_union=False):
-    padding = UnsignedByte[16]
+    padding = Array(datatype=UnsignedByte(), length=16)
     hashsalt = LongLong()
 
 
 class _Py_HashSecret_t(DataType, is_union=True):
-    uc = UnsignedByte[24]
+    uc = Array(datatype=UnsignedByte(), length=24)
     fnv = _Py_HashSecret_t_fnv()
     siphash = _Py_HashSecret_t_siphash()
     djbx33a = _Py_HashSecret_t_djbx33a()
@@ -948,7 +944,7 @@ class PyByteArrayObject(DataType, is_union=False):
 class PyBytesObject(DataType, is_union=False):
     ob_base = PyVarObject()
     ob_shash = LongLong()
-    ob_sval = Byte[1]
+    ob_sval = Array(datatype=Byte(), length=1)
 
 
 class _PyBytesWriter(DataType, is_union=False):
@@ -958,16 +954,16 @@ class _PyBytesWriter(DataType, is_union=False):
     use_bytearray = Int()
     overallocate = Int()
     use_small_buffer = Int()
-    small_buffer = Byte[512]
+    small_buffer = Array(datatype=Byte(), length=512)
 
 
 class PyASCIIObject_state(DataType, is_union=False):
-    interned = UnsignedInt()
-    kind = UnsignedInt()
-    compact = UnsignedInt()
-    ascii = UnsignedInt()
-    statically_allocated = UnsignedInt()
-    anonymous_var_2 = UnsignedInt()
+    interned = BitField(datatype=UnsignedInt(), bit_width=2)
+    kind = BitField(datatype=UnsignedInt(), bit_width=3)
+    compact = BitField(datatype=UnsignedInt(), bit_width=1)
+    ascii = BitField(datatype=UnsignedInt(), bit_width=1)
+    statically_allocated = BitField(datatype=UnsignedInt(), bit_width=1)
+    anonymous_var_2 = BitField(datatype=UnsignedInt(), bit_width=24)
 
 
 class PyASCIIObject(DataType, is_union=False):
@@ -1112,8 +1108,8 @@ class _err_stackitem(DataType, is_union=False):
 
 class _stack_chunk(DataType, is_union=False):
     previous = Pointer(datatype="_stack_chunk")
-    size = LongLong()
-    top = LongLong()
+    size = UnsignedLongLong()
+    top = UnsignedLongLong()
     data = Array(datatype=Pointer(datatype=_object()), length=1)
 
 
@@ -1123,15 +1119,15 @@ class _py_trashcan(DataType, is_union=False):
 
 
 class _ts_status(DataType, is_union=False):
-    initialized = UnsignedInt()
-    bound = UnsignedInt()
-    unbound = UnsignedInt()
-    bound_gilstate = UnsignedInt()
-    active = UnsignedInt()
-    finalizing = UnsignedInt()
-    cleared = UnsignedInt()
-    finalized = UnsignedInt()
-    anonymous_var_3 = UnsignedInt()
+    initialized = BitField(datatype=UnsignedInt(), bit_width=1)
+    bound = BitField(datatype=UnsignedInt(), bit_width=1)
+    unbound = BitField(datatype=UnsignedInt(), bit_width=1)
+    bound_gilstate = BitField(datatype=UnsignedInt(), bit_width=1)
+    active = BitField(datatype=UnsignedInt(), bit_width=1)
+    finalizing = BitField(datatype=UnsignedInt(), bit_width=1)
+    cleared = BitField(datatype=UnsignedInt(), bit_width=1)
+    finalized = BitField(datatype=UnsignedInt(), bit_width=1)
+    anonymous_var_3 = BitField(datatype=UnsignedInt(), bit_width=24)
 
 
 class _ts(DataType, is_union=False):
@@ -1322,7 +1318,7 @@ class PyAttributeErrorObject(DataType, is_union=False):
 
 class _PyLongValue(DataType, is_union=False):
     lv_tag = UnsignedLongLong()
-    ob_digit = UnsignedInt[1]
+    ob_digit = Array(datatype=UnsignedInt(), length=1)
 
 
 class _longobject(DataType, is_union=False):
@@ -1360,7 +1356,7 @@ class PyMemoryViewObject(DataType, is_union=False):
     exports = LongLong()
     view = Py_buffer()
     weakreflist = Pointer(datatype=_object())
-    ob_array = LongLong[1]
+    ob_array = Array(datatype=LongLong(), length=1)
 
 
 class PyTupleObject(DataType, is_union=False):
@@ -1400,7 +1396,7 @@ class PySetObject(DataType, is_union=False):
     table = Pointer(datatype=setentry())
     hash = LongLong()
     finger = LongLong()
-    smalltable = setentry[8]
+    smalltable = Array(datatype=setentry(), length=8)
     weakreflist = Pointer(datatype=_object())
 
 
@@ -1494,11 +1490,11 @@ class PyInstanceMethodObject(DataType, is_union=False):
 
 
 class _Py_LocalMonitors(DataType, is_union=False):
-    tools = UnsignedByte[15]
+    tools = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_GlobalMonitors(DataType, is_union=False):
-    tools = UnsignedByte[15]
+    tools = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_CODEUNIT_op(DataType, is_union=False):
@@ -1562,7 +1558,7 @@ class PyCodeObject(DataType, is_union=False):
     _co_monitoring = Pointer(datatype=_PyCoMonitoringData())
     _co_firsttraceable = Int()
     co_extra = Pointer(datatype=Void())
-    co_code_adaptive = Byte[1]
+    co_code_adaptive = Array(datatype=Byte(), length=1)
 
 
 class _opaque(DataType, is_union=False):
@@ -1726,7 +1722,7 @@ class _Py_clock_info_t(DataType, is_union=False):
 
 class sched_param(DataType, is_union=False):
     sched_priority = Int()
-    _opaque = Byte[4]
+    _opaque = Array(datatype=Byte(), length=4)
 
 
 class _Py_tss_t(DataType, is_union=False):
@@ -1797,7 +1793,7 @@ class atomic_flag(DataType, is_union=False):
 
 
 class _Py_atomic_address(DataType, is_union=False):
-    _value = LongLong()
+    _value = UnsignedLongLong()
 
 
 class _Py_atomic_int(DataType, is_union=False):
@@ -1894,7 +1890,7 @@ class PyHamtNode_Bitmap(DataType, is_union=False):
 
 class PyHamtIteratorState(DataType, is_union=False):
     i_nodes = Array(datatype=Pointer(datatype=PyHamtNode()), length=8)
-    i_pos = LongLong[8]
+    i_pos = Array(datatype=LongLong(), length=8)
     i_level = Byte()
 
 
@@ -1959,7 +1955,7 @@ class _pending_calls(DataType, is_union=False):
     lock = Pointer(datatype=Void())
     calls_to_do = _Py_atomic_int()
     async_exc = Int()
-    calls = _pending_call[32]
+    calls = Array(datatype=_pending_call(), length=32)
     first = Int()
     last = Int()
 
@@ -1998,107 +1994,107 @@ class _time_runtime_state(DataType, is_union=False):
 
 class _Py_global_strings_literals_py_anon_dictcomp(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_literals_py_anon_genexpr(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_literals_py_anon_lambda(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_literals_py_anon_listcomp(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_literals_py_anon_module(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_literals_py_anon_setcomp(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_literals_py_anon_string(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_literals_py_anon_unknown(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_literals_py_dbl_close_br(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[2]
+    _data = Array(datatype=UnsignedByte(), length=2)
 
 
 class _Py_global_strings_literals_py_dbl_open_br(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[2]
+    _data = Array(datatype=UnsignedByte(), length=2)
 
 
 class _Py_global_strings_literals_py_dbl_percent(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[2]
+    _data = Array(datatype=UnsignedByte(), length=2)
 
 
 class _Py_global_strings_literals_py_defaults(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_literals_py_dot_locals(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_literals_py_empty(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[0]
+    _data = Array(datatype=UnsignedByte(), length=0)
 
 
 class _Py_global_strings_literals_py_generic_base(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_literals_py_json_decoder(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_literals_py_kwdefaults(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_literals_py_list_err(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[23]
+    _data = Array(datatype=UnsignedByte(), length=23)
 
 
 class _Py_global_strings_literals_py_shim_name(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_literals_py_type_params(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_literals_py_utf_8(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_literals(DataType, is_union=False):
@@ -2127,3412 +2123,3412 @@ class _Py_global_strings_literals(DataType, is_union=False):
 
 class _Py_global_strings_identifiers_py_CANCELLED(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_FINISHED(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_False(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_JSONDecodeError(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py_PENDING(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_Py_Repr(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_TextIOWrapper(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py_True(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_WarningMessage(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_WindowsConsoleIO(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[17]
+    _data = Array(datatype=UnsignedByte(), length=17)
 
 
 class _Py_global_strings_identifiers_py__IOBase_closed(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py__abc_tpflags_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py__abs_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__abstractmethods_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[19]
+    _data = Array(datatype=UnsignedByte(), length=19)
 
 
 class _Py_global_strings_identifiers_py__add_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__aenter_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__aexit_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py__aiter_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py__all_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__and_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__anext_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py__annotations_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py__args_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__asyncio_running_event_loop_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[30]
+    _data = Array(datatype=UnsignedByte(), length=30)
 
 
 class _Py_global_strings_identifiers_py__await_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py__bases_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py__bool_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__buffer_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__build_class_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py__builtins_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py__bytes_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py__call_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__cantrace_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py__class_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py__class_getitem_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[17]
+    _data = Array(datatype=UnsignedByte(), length=17)
 
 
 class _Py_global_strings_identifiers_py__classcell_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py__classdict_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py__classdictcell_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[17]
+    _data = Array(datatype=UnsignedByte(), length=17)
 
 
 class _Py_global_strings_identifiers_py__complex_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__contains_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py__copy_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__ctypes_from_outparam_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[24]
+    _data = Array(datatype=UnsignedByte(), length=24)
 
 
 class _Py_global_strings_identifiers_py__del_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__delattr_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__delete_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__delitem_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__dict_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__dictoffset_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py__dir_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__divmod_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__doc_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__enter_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py__eq_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py__exit_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__file_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__float_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py__floordiv_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py__format_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__fspath_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__ge_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py__get_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__getattr_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__getattribute_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[16]
+    _data = Array(datatype=UnsignedByte(), length=16)
 
 
 class _Py_global_strings_identifiers_py__getinitargs_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py__getitem_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__getnewargs_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py__getnewargs_ex_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[17]
+    _data = Array(datatype=UnsignedByte(), length=17)
 
 
 class _Py_global_strings_identifiers_py__getstate_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py__gt_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py__hash_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__iadd_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__iand_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__ifloordiv_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py__ilshift_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__imatmul_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__imod_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__import_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__imul_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__index_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py__init_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__init_subclass_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[17]
+    _data = Array(datatype=UnsignedByte(), length=17)
 
 
 class _Py_global_strings_identifiers_py__instancecheck_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[17]
+    _data = Array(datatype=UnsignedByte(), length=17)
 
 
 class _Py_global_strings_identifiers_py__int_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__invert_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__ior_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__ipow_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__irshift_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__isabstractmethod_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[20]
+    _data = Array(datatype=UnsignedByte(), length=20)
 
 
 class _Py_global_strings_identifiers_py__isub_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__iter_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__itruediv_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py__ixor_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__le_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py__len_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__length_hint_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py__lltrace_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__loader_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__lshift_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__lt_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py__main_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__matmul_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__missing_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__mod_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__module_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__mro_entries_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py__mul_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__name_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__ne_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py__neg_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__new_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__newobj_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__newobj_ex_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py__next_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__notes_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py__or_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py__orig_class_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py__origin_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__package_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__parameters_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py__path_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__pos_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__pow_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__prepare_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__qualname_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py__radd_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__rand_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__rdivmod_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__reduce_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__reduce_ex_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py__release_buffer_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[18]
+    _data = Array(datatype=UnsignedByte(), length=18)
 
 
 class _Py_global_strings_identifiers_py__repr_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__reversed_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py__rfloordiv_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py__rlshift_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__rmatmul_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__rmod_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__rmul_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__ror_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__round_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py__rpow_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__rrshift_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__rshift_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__rsub_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__rtruediv_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py__rxor_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__set_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__set_name_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py__setattr_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__setitem_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__setstate_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py__sizeof_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py__slotnames_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py__slots_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py__spec_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py__str_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__sub_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py__subclasscheck_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[17]
+    _data = Array(datatype=UnsignedByte(), length=17)
 
 
 class _Py_global_strings_identifiers_py__subclasshook_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[16]
+    _data = Array(datatype=UnsignedByte(), length=16)
 
 
 class _Py_global_strings_identifiers_py__truediv_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__trunc_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py__type_params_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py__typing_is_unpacked_typevartuple_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[35]
+    _data = Array(datatype=UnsignedByte(), length=35)
 
 
 class _Py_global_strings_identifiers_py__typing_prepare_subst_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[24]
+    _data = Array(datatype=UnsignedByte(), length=24)
 
 
 class _Py_global_strings_identifiers_py__typing_subst_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[16]
+    _data = Array(datatype=UnsignedByte(), length=16)
 
 
 class _Py_global_strings_identifiers_py__typing_unpacked_tuple_args_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[30]
+    _data = Array(datatype=UnsignedByte(), length=30)
 
 
 class _Py_global_strings_identifiers_py__warningregistry_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[19]
+    _data = Array(datatype=UnsignedByte(), length=19)
 
 
 class _Py_global_strings_identifiers_py__weaklistoffset_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[18]
+    _data = Array(datatype=UnsignedByte(), length=18)
 
 
 class _Py_global_strings_identifiers_py__weakref_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py__xor_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_abc_impl(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_abstract_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_active(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_annotation(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_anonymous_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_argtypes_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_as_parameter_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_asyncio_future_blocking(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[24]
+    _data = Array(datatype=UnsignedByte(), length=24)
 
 
 class _Py_global_strings_identifiers_py_blksize(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_bootstrap(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_check_retval_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_dealloc_warn(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py_feature_version(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[16]
+    _data = Array(datatype=UnsignedByte(), length=16)
 
 
 class _Py_global_strings_identifiers_py_fields_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_finalizing(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_find_and_load(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_fix_up_module(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_flags_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_get_sourcefile(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py_handle_fromlist(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[16]
+    _data = Array(datatype=UnsignedByte(), length=16)
 
 
 class _Py_global_strings_identifiers_py_initializing(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py_io(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_is_text_encoding(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[17]
+    _data = Array(datatype=UnsignedByte(), length=17)
 
 
 class _Py_global_strings_identifiers_py_length_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_limbo(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_lock_unlock_module(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[19]
+    _data = Array(datatype=UnsignedByte(), length=19)
 
 
 class _Py_global_strings_identifiers_py_loop(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_needs_com_addref_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[18]
+    _data = Array(datatype=UnsignedByte(), length=18)
 
 
 class _Py_global_strings_identifiers_py_only_immortal(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_pack_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_restype_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_showwarnmsg(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py_shutdown(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_slotnames(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_strptime_datetime(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[18]
+    _data = Array(datatype=UnsignedByte(), length=18)
 
 
 class _Py_global_strings_identifiers_py_swappedbytes_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_type_(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_uninitialized_submodules(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[25]
+    _data = Array(datatype=UnsignedByte(), length=25)
 
 
 class _Py_global_strings_identifiers_py_warn_unawaited_coroutine(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[25]
+    _data = Array(datatype=UnsignedByte(), length=25)
 
 
 class _Py_global_strings_identifiers_py_xoptions(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_abs_tol(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_access(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_add(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_add_done_callback(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[17]
+    _data = Array(datatype=UnsignedByte(), length=17)
 
 
 class _Py_global_strings_identifiers_py_after_in_child(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_after_in_parent(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py_aggregate_class(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py_alias(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_append(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_arg(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_argdefs(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_args(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_arguments(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_argv(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_as_integer_ratio(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[16]
+    _data = Array(datatype=UnsignedByte(), length=16)
 
 
 class _Py_global_strings_identifiers_py_ast(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_attribute(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_authorizer_callback(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[19]
+    _data = Array(datatype=UnsignedByte(), length=19)
 
 
 class _Py_global_strings_identifiers_py_autocommit(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_backtick(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_base(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_before(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_big(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_binary_form(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_block(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_bound(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_buffer(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_buffer_callback(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py_buffer_size(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_buffering(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_buffers(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_bufsize(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_builtins(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_byteorder(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_bytes(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_bytes_per_sep(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py_c_call(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_c_exception(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_c_return(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_cached_statements(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[17]
+    _data = Array(datatype=UnsignedByte(), length=17)
 
 
 class _Py_global_strings_identifiers_py_cadata(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_cafile(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_call(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_call_exception_handler(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[22]
+    _data = Array(datatype=UnsignedByte(), length=22)
 
 
 class _Py_global_strings_identifiers_py_call_soon(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_cancel(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_capath(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_category(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_cb_type(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_certfile(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_check_same_thread(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[17]
+    _data = Array(datatype=UnsignedByte(), length=17)
 
 
 class _Py_global_strings_identifiers_py_clear(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_close(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_closed(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_closefd(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_closure(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_co_argcount(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_co_cellvars(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_co_code(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_co_consts(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_co_exceptiontable(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[17]
+    _data = Array(datatype=UnsignedByte(), length=17)
 
 
 class _Py_global_strings_identifiers_py_co_filename(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_co_firstlineno(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_co_flags(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_co_freevars(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_co_kwonlyargcount(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[17]
+    _data = Array(datatype=UnsignedByte(), length=17)
 
 
 class _Py_global_strings_identifiers_py_co_linetable(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py_co_name(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_co_names(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_co_nlocals(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_co_posonlyargcount(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[18]
+    _data = Array(datatype=UnsignedByte(), length=18)
 
 
 class _Py_global_strings_identifiers_py_co_qualname(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_co_stacksize(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py_co_varnames(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_code(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_command(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_comment_factory(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py_compile_mode(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py_consts(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_context(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_contravariant(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py_cookie(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_copy(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_copyreg(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_coro(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_count(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_covariant(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_cwd(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_data(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_database(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_decode(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_decoder(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_default(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_defaultaction(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py_delete(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_depth(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_detect_types(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py_deterministic(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py_device(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_dict(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_dictcomp(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_difference_update(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[17]
+    _data = Array(datatype=UnsignedByte(), length=17)
 
 
 class _Py_global_strings_identifiers_py_digest(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_digest_size(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_digestmod(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_dir_fd(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_discard(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_dispatch_table(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_displayhook(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_dklen(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_doc(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_dont_inherit(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py_dst(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_dst_dir_fd(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_duration(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_eager_start(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_effective_ids(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py_element_factory(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py_encode(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_encoding(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_end(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_end_lineno(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_end_offset(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_endpos(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_entrypoint(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_env(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_errors(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_event(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_eventmask(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_exc_type(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_exc_value(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_excepthook(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_exception(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_existing_file_name(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[18]
+    _data = Array(datatype=UnsignedByte(), length=18)
 
 
 class _Py_global_strings_identifiers_py_exp(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_extend(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_extra_tokens(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py_facility(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_factory(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_false(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_family(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_fanout(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_fd(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[2]
+    _data = Array(datatype=UnsignedByte(), length=2)
 
 
 class _Py_global_strings_identifiers_py_fd2(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_fdel(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_fget(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_file(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_file_actions(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py_filename(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_fileno(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_filepath(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_fillvalue(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_filters(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_final(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_find_class(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_fix_imports(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_flags(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_flush(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_follow_symlinks(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py_format(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_frequency(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_from_param(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_fromlist(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_fromtimestamp(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py_fromutc(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_fset(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_func(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_future(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_generation(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_genexpr(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_get(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_get_debug(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_get_event_loop(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_get_loop(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_get_source(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_getattr(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_getstate(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_gid(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_globals(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_groupindex(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_groups(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_handle(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_hash_name(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_header(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_headers(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_hi(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[2]
+    _data = Array(datatype=UnsignedByte(), length=2)
 
 
 class _Py_global_strings_identifiers_py_hook(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_id(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[2]
+    _data = Array(datatype=UnsignedByte(), length=2)
 
 
 class _Py_global_strings_identifiers_py_ident(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_ignore(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_imag(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_importlib(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_in_fd(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_incoming(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_indexgroup(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_inf(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_infer_variance(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_inheritable(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_initial(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_initial_bytes(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py_initial_value(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py_initval(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_inner_size(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_input(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_insert_comments(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py_insert_pis(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_instructions(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py_intern(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_intersection(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py_is_running(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_isatty(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_isinstance(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_isoformat(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_isolation_level(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py_istext(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_item(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_items(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_iter(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_iterable(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_iterations(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_join(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_jump(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_keepends(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_key(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_keyfile(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_keys(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_kind(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_kw(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[2]
+    _data = Array(datatype=UnsignedByte(), length=2)
 
 
 class _Py_global_strings_identifiers_py_kw1(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_kw2(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_lambda(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_last(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_last_exc(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_last_node(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_last_traceback(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_last_type(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_last_value(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_latin1(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_leaf_size(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_len(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_length(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_level(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_limit(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_line(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_line_buffering(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_lineno(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_listcomp(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_little(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_lo(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[2]
+    _data = Array(datatype=UnsignedByte(), length=2)
 
 
 class _Py_global_strings_identifiers_py_locale(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_locals(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_logoption(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_loop(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_mapping(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_match(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_max_length(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_maxdigits(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_maxevents(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_maxmem(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_maxsplit(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_maxvalue(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_memLevel(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_memlimit(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_message(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_metaclass(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_metadata(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_method(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_mod(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_mode(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_module(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_module_globals(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_modules(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_mro(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_msg(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_mycmp(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_n_arg(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_n_fields(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_n_sequence_fields(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[17]
+    _data = Array(datatype=UnsignedByte(), length=17)
 
 
 class _Py_global_strings_identifiers_py_n_unnamed_fields(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[16]
+    _data = Array(datatype=UnsignedByte(), length=16)
 
 
 class _Py_global_strings_identifiers_py_name(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_name_from(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_namespace_separator(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[19]
+    _data = Array(datatype=UnsignedByte(), length=19)
 
 
 class _Py_global_strings_identifiers_py_namespaces(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_narg(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_ndigits(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_new_file_name(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py_new_limit(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_newline(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_newlines(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_next(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_nlocals(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_node_depth(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_node_offset(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_ns(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[2]
+    _data = Array(datatype=UnsignedByte(), length=2)
 
 
 class _Py_global_strings_identifiers_py_nstype(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_nt(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[2]
+    _data = Array(datatype=UnsignedByte(), length=2)
 
 
 class _Py_global_strings_identifiers_py_null(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_number(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_obj(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_object(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_offset(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_offset_dst(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_offset_src(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_on_type_read(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py_onceregistry(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[12]
+    _data = Array(datatype=UnsignedByte(), length=12)
 
 
 class _Py_global_strings_identifiers_py_only_keys(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_oparg(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_opcode(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_open(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_opener(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_operation(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_optimize(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_options(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_order(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_origin(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_out_fd(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_outgoing(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_overlapped(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_owner(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_pages(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_parent(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_password(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_path(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_pattern(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_peek(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_persistent_id(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py_persistent_load(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py_person(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_pi_factory(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_pid(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_policy(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_pos(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_pos1(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_pos2(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_posix(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_print_file_and_line(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[19]
+    _data = Array(datatype=UnsignedByte(), length=19)
 
 
 class _Py_global_strings_identifiers_py_priority(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_progress(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_progress_handler(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[16]
+    _data = Array(datatype=UnsignedByte(), length=16)
 
 
 class _Py_global_strings_identifiers_py_progress_routine(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[16]
+    _data = Array(datatype=UnsignedByte(), length=16)
 
 
 class _Py_global_strings_identifiers_py_proto(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_protocol(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_ps1(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_ps2(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_query(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_quotetabs(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_raw(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_read(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_read1(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_readable(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_readall(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_readinto(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_readinto1(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_readline(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_readonly(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_real(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_reducer_override(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[16]
+    _data = Array(datatype=UnsignedByte(), length=16)
 
 
 class _Py_global_strings_identifiers_py_registry(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_rel_tol(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_release(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_reload(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_repl(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_replace(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_reserved(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_reset(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_resetids(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_return(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_reverse(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_reversed(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_salt(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_sched_priority(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_scheduler(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_seek(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_seekable(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_selectors(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_self(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_send(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_sep(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_sequence(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_server_hostname(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py_server_side(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_session(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_setcomp(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_setpgroup(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_setsid(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_setsigdef(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_setsigmask(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_setstate(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_shape(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_show_cmd(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_signed(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_size(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_sizehint(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_skip_file_prefixes(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[18]
+    _data = Array(datatype=UnsignedByte(), length=18)
 
 
 class _Py_global_strings_identifiers_py_sleep(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_sock(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_sort(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_sound(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_source(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_source_traceback(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[16]
+    _data = Array(datatype=UnsignedByte(), length=16)
 
 
 class _Py_global_strings_identifiers_py_spam(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_src(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_src_dir_fd(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_stacklevel(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_start(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_statement(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_status(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_stderr(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_stdin(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_stdout(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_step(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_steps(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_store_name(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[10]
+    _data = Array(datatype=UnsignedByte(), length=10)
 
 
 class _Py_global_strings_identifiers_py_strategy(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_strftime(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_strict(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_strict_mode(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_string(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_sub_key(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_symmetric_difference_update(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[27]
+    _data = Array(datatype=UnsignedByte(), length=27)
 
 
 class _Py_global_strings_identifiers_py_tabsize(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_tag(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_target(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_target_is_directory(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[19]
+    _data = Array(datatype=UnsignedByte(), length=19)
 
 
 class _Py_global_strings_identifiers_py_task(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_tb_frame(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_tb_lasti(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_tb_lineno(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_tb_next(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_tell(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_template(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_term(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_text(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_threading(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_throw(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_timeout(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_times(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_timetuple(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_top(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_trace_callback(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_traceback(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_trailers(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_translate(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[9]
+    _data = Array(datatype=UnsignedByte(), length=9)
 
 
 class _Py_global_strings_identifiers_py_true(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_truncate(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_twice(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_txt(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_type(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_type_params(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_tz(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[2]
+    _data = Array(datatype=UnsignedByte(), length=2)
 
 
 class _Py_global_strings_identifiers_py_tzname(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_uid(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_unlink(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_unraisablehook(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[14]
+    _data = Array(datatype=UnsignedByte(), length=14)
 
 
 class _Py_global_strings_identifiers_py_uri(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_usedforsecurity(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[15]
+    _data = Array(datatype=UnsignedByte(), length=15)
 
 
 class _Py_global_strings_identifiers_py_value(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_values(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_version(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_volume(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[6]
+    _data = Array(datatype=UnsignedByte(), length=6)
 
 
 class _Py_global_strings_identifiers_py_warnings(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_warnoptions(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[11]
+    _data = Array(datatype=UnsignedByte(), length=11)
 
 
 class _Py_global_strings_identifiers_py_wbits(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_week(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_weekday(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[7]
+    _data = Array(datatype=UnsignedByte(), length=7)
 
 
 class _Py_global_strings_identifiers_py_which(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_who(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[3]
+    _data = Array(datatype=UnsignedByte(), length=3)
 
 
 class _Py_global_strings_identifiers_py_withdata(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_writable(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[8]
+    _data = Array(datatype=UnsignedByte(), length=8)
 
 
 class _Py_global_strings_identifiers_py_write(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers_py_write_through(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[13]
+    _data = Array(datatype=UnsignedByte(), length=13)
 
 
 class _Py_global_strings_identifiers_py_year(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[4]
+    _data = Array(datatype=UnsignedByte(), length=4)
 
 
 class _Py_global_strings_identifiers_py_zdict(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[5]
+    _data = Array(datatype=UnsignedByte(), length=5)
 
 
 class _Py_global_strings_identifiers(DataType, is_union=False):
@@ -6222,19 +6218,19 @@ class _Py_global_strings_identifiers(DataType, is_union=False):
 
 class _Py_global_strings_ascii(DataType, is_union=False):
     _ascii = PyASCIIObject()
-    _data = UnsignedByte[2]
+    _data = Array(datatype=UnsignedByte(), length=2)
 
 
 class _Py_global_strings_latin1(DataType, is_union=False):
     _latin1 = PyCompactUnicodeObject()
-    _data = UnsignedByte[2]
+    _data = Array(datatype=UnsignedByte(), length=2)
 
 
 class _Py_global_strings(DataType, is_union=False):
     literals = _Py_global_strings_literals()
     identifiers = _Py_global_strings_identifiers()
-    ascii = _Py_global_strings_ascii[128]
-    latin1 = _Py_global_strings_latin1[128]
+    ascii = Array(datatype=_Py_global_strings_ascii(), length=128)
+    latin1 = Array(datatype=_Py_global_strings_latin1(), length=128)
 
 
 class asdl_seq(DataType, is_union=False):
@@ -6257,7 +6253,7 @@ class asdl_identifier_seq(DataType, is_union=False):
 class asdl_int_seq(DataType, is_union=False):
     size = LongLong()
     elements = Pointer(datatype=Pointer(datatype=Void()))
-    typed_elements = Int[1]
+    typed_elements = Array(datatype=Int(), length=1)
 
 
 class _PyOS_LongOption(DataType, is_union=False):
@@ -6377,7 +6373,7 @@ class _signals_runtime_state_wakeup(DataType, is_union=False):
 
 
 class _signals_runtime_state(DataType, is_union=False):
-    handlers = _signals_runtime_state_handlers[32]
+    handlers = Array(datatype=_signals_runtime_state_handlers(), length=32)
     wakeup = _signals_runtime_state_wakeup()
     is_tripped = _Py_atomic_int()
     default_handler = Pointer(datatype=_object())
@@ -6422,20 +6418,20 @@ class _PySuperAttrCache(DataType, is_union=False):
 
 class _PyAttrCache(DataType, is_union=False):
     counter = UnsignedShort()
-    version = UnsignedShort[2]
+    version = Array(datatype=UnsignedShort(), length=2)
     index = UnsignedShort()
 
 
 class _PyLoadMethodCache(DataType, is_union=False):
     counter = UnsignedShort()
-    type_version = UnsignedShort[2]
-    keys_version = UnsignedShort[2]
-    descr = UnsignedShort[4]
+    type_version = Array(datatype=UnsignedShort(), length=2)
+    keys_version = Array(datatype=UnsignedShort(), length=2)
+    descr = Array(datatype=UnsignedShort(), length=4)
 
 
 class _PyCallCache(DataType, is_union=False):
     counter = UnsignedShort()
-    func_version = UnsignedShort[2]
+    func_version = Array(datatype=UnsignedShort(), length=2)
 
 
 class _PyStoreSubscrCache(DataType, is_union=False):
@@ -6495,7 +6491,7 @@ class pyhash_runtime_state(DataType, is_union=False):
 
 class _Py_tuple_state(DataType, is_union=False):
     free_list = Array(datatype=Pointer(datatype=PyTupleObject()), length=20)
-    numfree = Int[20]
+    numfree = Array(datatype=Int(), length=20)
 
 
 class _PyTupleIterObject(DataType, is_union=False):
@@ -6530,7 +6526,7 @@ class _faulthandler_runtime_state_thread(DataType, is_union=False):
     interp = Pointer(datatype="_is")
     exit = Int()
     header = Pointer(datatype=Byte())
-    header_len = LongLong()
+    header_len = UnsignedLongLong()
     cancel_event = Pointer(datatype=Void())
     running = Pointer(datatype=Void())
 
@@ -6572,7 +6568,7 @@ class _Py_slist_t(DataType, is_union=False):
 
 class _Py_hashtable_entry_t(DataType, is_union=False):
     _Py_slist_item = _Py_slist_item_s()
-    key_hash = LongLong()
+    key_hash = UnsignedLongLong()
     key = Pointer(datatype=Void())
     value = Pointer(datatype=Void())
 
@@ -6583,8 +6579,8 @@ class _Py_hashtable_allocator_t(DataType, is_union=False):
 
 
 class _Py_hashtable_t(DataType, is_union=False):
-    nentries = LongLong()
-    nbuckets = LongLong()
+    nentries = UnsignedLongLong()
+    nbuckets = UnsignedLongLong()
     buckets = Pointer(datatype=_Py_slist_t())
     get_entry_func = Pointer(datatype=Func())
     hash_func = Pointer(datatype=Func())
@@ -6651,10 +6647,10 @@ class _gc_runtime_state(DataType, is_union=False):
     trash_delete_nesting = Int()
     enabled = Int()
     debug = Int()
-    generations = gc_generation[3]
+    generations = Array(datatype=gc_generation(), length=3)
     generation0 = Pointer(datatype=PyGC_Head())
     permanent_generation = gc_generation()
-    generation_stats = gc_generation_stats[3]
+    generation_stats = Array(datatype=gc_generation_stats(), length=3)
     collecting = Int()
     garbage = Pointer(datatype=_object())
     callbacks = Pointer(datatype=_object())
@@ -6681,7 +6677,7 @@ class _dictkeysobject(DataType, is_union=False):
     dk_version = UnsignedInt()
     dk_usable = LongLong()
     dk_nentries = LongLong()
-    dk_indices = Byte[0]
+    dk_indices = Array(datatype=Byte(), length=0)
 
 
 class _dictvalues(DataType, is_union=False):
@@ -6770,19 +6766,19 @@ class _symtable_entry(DataType, is_union=False):
     ste_directives = Pointer(datatype=_object())
     ste_type = Int()
     ste_nested = Int()
-    ste_free = UnsignedInt()
-    ste_child_free = UnsignedInt()
-    ste_generator = UnsignedInt()
-    ste_coroutine = UnsignedInt()
+    ste_free = BitField(datatype=UnsignedInt(), bit_width=1)
+    ste_child_free = BitField(datatype=UnsignedInt(), bit_width=1)
+    ste_generator = BitField(datatype=UnsignedInt(), bit_width=1)
+    ste_coroutine = BitField(datatype=UnsignedInt(), bit_width=1)
     ste_comprehension = Int()
-    ste_varargs = UnsignedInt()
-    ste_varkeywords = UnsignedInt()
-    ste_returns_value = UnsignedInt()
-    ste_needs_class_closure = UnsignedInt()
-    ste_needs_classdict = UnsignedInt()
-    ste_comp_inlined = UnsignedInt()
-    ste_comp_iter_target = UnsignedInt()
-    ste_can_see_class_scope = UnsignedInt()
+    ste_varargs = BitField(datatype=UnsignedInt(), bit_width=1)
+    ste_varkeywords = BitField(datatype=UnsignedInt(), bit_width=1)
+    ste_returns_value = BitField(datatype=UnsignedInt(), bit_width=1)
+    ste_needs_class_closure = BitField(datatype=UnsignedInt(), bit_width=1)
+    ste_needs_classdict = BitField(datatype=UnsignedInt(), bit_width=1)
+    ste_comp_inlined = BitField(datatype=UnsignedInt(), bit_width=1)
+    ste_comp_iter_target = BitField(datatype=UnsignedInt(), bit_width=1)
+    ste_can_see_class_scope = BitField(datatype=UnsignedInt(), bit_width=1)
     ste_comp_iter_expr = Int()
     ste_lineno = Int()
     ste_col_offset = Int()
@@ -7094,7 +7090,7 @@ class _xidregitem(DataType, is_union=False):
     next = Pointer(datatype="_xidregitem")
     cls = Pointer(datatype=_typeobject())
     weakref = Pointer(datatype=_object())
-    refcount = LongLong()
+    refcount = UnsignedLongLong()
     getdata = Pointer(datatype=Func())
 
 
@@ -7107,7 +7103,7 @@ class pythreads(DataType, is_union=False):
     next_unique_id = UnsignedLongLong()
     head = Pointer(datatype=_ts())
     count = LongLong()
-    stacksize = LongLong()
+    stacksize = UnsignedLongLong()
 
 
 class _is(DataType, is_union=False):
@@ -7139,7 +7135,7 @@ class _is(DataType, is_union=False):
     sysdict_copy = Pointer(datatype=_object())
     builtins_copy = Pointer(datatype=_object())
     eval_frame = Pointer(datatype=Func())
-    func_watchers = Array(datatype=Pointer(datatype=Func()), length=0)
+    func_watchers = Array(datatype=Pointer(datatype=Func()), length=8)
     active_func_watchers = UnsignedByte()
     co_extra_user_count = LongLong()
     co_extra_freefuncs = Array(datatype=Pointer(datatype=Func()), length=255)
@@ -7176,8 +7172,8 @@ class _is(DataType, is_union=False):
     sys_trace_initialized = Byte()
     sys_profiling_threads = LongLong()
     sys_tracing_threads = LongLong()
-    monitoring_callables = Array(datatype=Pointer(datatype=_object()), length=17)[0]
-    monitoring_tool_names = Array(datatype=Pointer(datatype=_object()), length=0)
+    monitoring_callables = Array(datatype=Array(datatype=Pointer(datatype=_object()), length=17), length=8)
+    monitoring_tool_names = Array(datatype=Pointer(datatype=_object()), length=8)
     cached_objects = "_Py_interp_cached_objects"
     static_objects = "_Py_interp_static_objects"
     xidregistry = _xidregistry()
@@ -7192,13 +7188,13 @@ class Bigint(DataType, is_union=False):
     maxwds = Int()
     sign = Int()
     wds = Int()
-    x = UnsignedInt[1]
+    x = Array(datatype=UnsignedInt(), length=1)
 
 
 class _dtoa_state(DataType, is_union=False):
     p5s = Pointer(datatype=Bigint())
     freelist = Array(datatype=Pointer(datatype=Bigint()), length=8)
-    preallocated = Double[288]
+    preallocated = Array(datatype=Double(), length=288)
     preallocated_next = Pointer(datatype=Double())
 
 
@@ -7235,11 +7231,11 @@ class _PyCfgBasicblock_(DataType, is_union=False):
     b_predecessors = Int()
     b_startdepth = Int()
     b_offset = Int()
-    b_preserve_lasti = UnsignedInt()
-    b_visited = UnsignedInt()
-    b_except_handler = UnsignedInt()
-    b_cold = UnsignedInt()
-    b_warm = UnsignedInt()
+    b_preserve_lasti = BitField(datatype=UnsignedInt(), bit_width=1)
+    b_visited = BitField(datatype=UnsignedInt(), bit_width=1)
+    b_except_handler = BitField(datatype=UnsignedInt(), bit_width=1)
+    b_cold = BitField(datatype=UnsignedInt(), bit_width=1)
+    b_warm = BitField(datatype=UnsignedInt(), bit_width=1)
 
 
 class cfg_builder_(DataType, is_union=False):
@@ -7270,7 +7266,7 @@ class type_cache_entry(DataType, is_union=False):
 
 
 class type_cache(DataType, is_union=False):
-    hashtable = type_cache_entry[4096]
+    hashtable = Array(datatype=type_cache_entry(), length=4096)
 
 
 class static_builtin_state(DataType, is_union=False):
@@ -7285,8 +7281,8 @@ class static_builtin_state(DataType, is_union=False):
 class types_state(DataType, is_union=False):
     next_version_tag = UnsignedInt()
     type_cache = type_cache()
-    num_builtins_initialized = LongLong()
-    builtins = static_builtin_state[200]
+    num_builtins_initialized = UnsignedLongLong()
+    builtins = Array(datatype=static_builtin_state(), length=200)
 
 
 class _PyTraceMalloc_Config(DataType, is_union=False):
@@ -7301,10 +7297,10 @@ class tracemalloc_frame(DataType, is_union=False):
 
 
 class tracemalloc_traceback(DataType, is_union=False):
-    hash = LongLong()
+    hash = UnsignedLongLong()
     nframe = UnsignedShort()
     total_nframe = UnsignedShort()
-    frames = tracemalloc_frame[1]
+    frames = Array(datatype=tracemalloc_frame(), length=1)
 
 
 class _tracemalloc_runtime_state_allocators(DataType, is_union=False):
@@ -7317,8 +7313,8 @@ class _tracemalloc_runtime_state(DataType, is_union=False):
     config = _PyTraceMalloc_Config()
     allocators = _tracemalloc_runtime_state_allocators()
     tables_lock = Pointer(datatype=Void())
-    traced_memory = LongLong()
-    peak_traced_memory = LongLong()
+    traced_memory = UnsignedLongLong()
+    peak_traced_memory = UnsignedLongLong()
     filenames = Pointer(datatype=_Py_hashtable_t())
     traceback = Pointer(datatype=tracemalloc_traceback())
     tracebacks = Pointer(datatype=_Py_hashtable_t())
@@ -7349,9 +7345,9 @@ class _Py_static_objects_singletons_bytes_characters(DataType, is_union=False):
 
 
 class _Py_static_objects_singletons(DataType, is_union=False):
-    small_ints = _longobject[262]
+    small_ints = Array(datatype=_longobject(), length=262)
     bytes_empty = PyBytesObject()
-    bytes_characters = _Py_static_objects_singletons_bytes_characters[256]
+    bytes_characters = Array(datatype=_Py_static_objects_singletons_bytes_characters(), length=256)
     strings = _Py_global_strings()
     _tuple_empty_gc_not_used = PyGC_Head()
     tuple_empty = PyTupleObject()
@@ -7474,9 +7470,9 @@ class _obmalloc_mgmt(DataType, is_union=False):
     unused_arena_objects = Pointer(datatype=arena_object())
     usable_arenas = Pointer(datatype=arena_object())
     nfp2lasta = Array(datatype=Pointer(datatype=arena_object()), length=65)
-    narenas_currently_allocated = LongLong()
-    ntimes_arena_allocated = LongLong()
-    narenas_highwater = LongLong()
+    narenas_currently_allocated = UnsignedLongLong()
+    ntimes_arena_allocated = UnsignedLongLong()
+    narenas_highwater = UnsignedLongLong()
     raw_allocated_blocks = LongLong()
 
 
@@ -7486,7 +7482,7 @@ class arena_coverage_t(DataType, is_union=False):
 
 
 class arena_map_bot(DataType, is_union=False):
-    arenas = arena_coverage_t[16384]
+    arenas = Array(datatype=arena_coverage_t(), length=16384)
 
 
 class arena_map_mid(DataType, is_union=False):

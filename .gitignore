@@ -401,3 +401,8 @@ fabric.properties
 
 # Local
 .idea/
+
+# generator scratch space
+cpython/
+python_structures.c
+prepared_python_structures.c

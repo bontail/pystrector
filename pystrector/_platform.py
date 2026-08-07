@@ -22,6 +22,9 @@ GENERATED_ON: tuple[str, str] = getattr(
 GENERATED_FOR_CPYTHON: tuple[int, int] = getattr(
     core_datatypes, "GENERATED_FOR_CPYTHON", (3, 12)
 )
+GENERATED_FOR_CPYTHON_FULL: tuple[int, int, int] | None = getattr(
+    core_datatypes, "GENERATED_FOR_CPYTHON_FULL", None
+)
 
 
 class UnsupportedPlatformError(RuntimeError):
@@ -65,6 +68,38 @@ def check_abi() -> None:
         )
 
 
+def check_build() -> None:
+    """Raise when the interpreter was built with layout changing flags."""
+    if hasattr(sys, "getobjects"):
+        # --with-trace-refs puts _ob_next and _ob_prev in front of every
+        # PyObject, so every offset in the file is off by 16
+        raise UnsupportedPlatformError(
+            "this interpreter was built with Py_TRACE_REFS, which adds two"
+            " fields to every object header. The bundled layouts describe"
+            " a normal build and would read the wrong offsets"
+        )
+
+
+def check_micro_version() -> None:
+    """Warn when the patch release differs from the generated one."""
+    if GENERATED_FOR_CPYTHON_FULL is None:
+        return
+
+    running_on = sys.version_info[:3]
+    if running_on == GENERATED_FOR_CPYTHON_FULL:
+        return
+
+    warnings.warn(
+        "the bundled layouts were generated for CPython"
+        f" {'.'.join(map(str, GENERATED_FOR_CPYTHON_FULL))}, but this is"
+        f" {'.'.join(map(str, running_on))}. Patch releases do change"
+        " internal structs - 3.12.7 added a field to PyASCIIObject - so"
+        " some offsets may be wrong",
+        PlatformMismatchWarning,
+        stacklevel=3,
+    )
+
+
 def check_platform() -> None:
     """Warn when the layouts were generated on a different platform."""
     running_on = (sys.platform, platform.machine())
@@ -76,7 +111,8 @@ def check_platform() -> None:
         f"/{GENERATED_ON[1]}, but this is {running_on[0]}/{running_on[1]}."
         " Core object layouts (PyObject, list, int, ...) match, but"
         " platform specific structs may not. Regenerate them with"
-        " 'make update-python-source generate-core-datatypes' to be sure",
+        " 'make update-python-source python-version=<tag>' followed by"
+        " 'make generate-core-datatypes' to be sure",
         PlatformMismatchWarning,
         stacklevel=3,
     )
@@ -84,4 +120,6 @@ def check_platform() -> None:
 
 def check() -> None:
     check_abi()
+    check_build()
     check_platform()
+    check_micro_version()

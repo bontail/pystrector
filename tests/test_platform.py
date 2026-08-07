@@ -8,7 +8,7 @@ from unittest import mock
 from pystrector import _platform
 from pystrector._platform import (
     PlatformMismatchWarning, UnsupportedPlatformError, check_abi,
-    check_platform,
+    check_build, check_micro_version, check_platform,
 )
 
 
@@ -85,6 +85,53 @@ class TestPlatformChecks(unittest.TestCase):
             with warnings.catch_warnings(record=True) as caught:
                 warnings.simplefilter('always')
                 check_platform()
+
+        self.assertEqual(caught, [])
+
+
+class TestBuildChecks(unittest.TestCase):
+
+    def test_current_interpreter_passes(self):
+        check_build()
+
+    def test_trace_refs_build_is_rejected(self):
+        # sys.getobjects only exists on a --with-trace-refs build, which
+        # puts two extra fields in front of every PyObject
+        with mock.patch.object(sys, 'getobjects', lambda _: [], create=True):
+            with self.assertRaises(UnsupportedPlatformError) as ctx:
+                check_build()
+
+        self.assertIn('Py_TRACE_REFS', str(ctx.exception))
+
+
+class TestMicroVersionChecks(unittest.TestCase):
+
+    def test_matching_patch_release_is_silent(self):
+        with mock.patch.object(_platform, 'GENERATED_FOR_CPYTHON_FULL',
+                               sys.version_info[:3]):
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                check_micro_version()
+
+        self.assertEqual(caught, [])
+
+    def test_other_patch_release_warns(self):
+        other = (sys.version_info[0], sys.version_info[1],
+                 sys.version_info[2] + 1)
+        with mock.patch.object(_platform, 'GENERATED_FOR_CPYTHON_FULL',
+                               other):
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                check_micro_version()
+
+        self.assertEqual(len(caught), 1)
+        self.assertIs(caught[0].category, PlatformMismatchWarning)
+
+    def test_generated_file_without_a_patch_release_is_silent(self):
+        with mock.patch.object(_platform, 'GENERATED_FOR_CPYTHON_FULL', None):
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                check_micro_version()
 
         self.assertEqual(caught, [])
 

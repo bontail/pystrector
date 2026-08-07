@@ -11,7 +11,7 @@ from pycparser.c_ast import Decl, Typedef, PtrDecl, Struct, \
     BinaryOp, Constant, UnaryOp, TernaryOp, Typename, ID
 from pystrector.base_datatypes import DataTypeMeta, Void, Int, Func, Array, \
     Pointer, UnsignedInt, LongLong, UnsignedLongLong, Byte, Bool, \
-    UnsignedByte, Short, UnsignedShort, Float, Double, DataType, \
+    UnsignedByte, Short, UnsignedShort, Float, Double, DataType, BitField, \
     get_anonymous_var_name
 from pystrector.code_generator.prepare_c_file import prepare_c_file
 
@@ -21,6 +21,25 @@ SIZES = {
     "__int32_t": "4",
     "double": "8",
 }
+
+# enumerator name -> value, filled in as enums are parsed. Array bounds
+# in the CPython headers are often enum constants (FUNC_MAX_WATCHERS,
+# PY_MONITORING_TOOL_IDS, ...), and resolving them to 0 would silently
+# shift every field that follows the array.
+ENUM_CONSTANTS: dict[str, int] = {}
+
+
+def register_enum(node: Enum) -> None:
+    """Record the value of every enumerator of node."""
+    if node.values is None:
+        return
+
+    next_value = 0
+    for enumerator in node.values.enumerators:
+        if enumerator.value is not None:
+            next_value = int(eval(get_expr_from_binary_op(enumerator.value)))
+        ENUM_CONSTANTS[enumerator.name] = next_value
+        next_value += 1
 
 
 def get_anonymous_struct_name() -> str:
@@ -66,7 +85,13 @@ def get_expr_from_binary_op(node: Node) -> str:
         return get_type(node.type, node)
 
     elif isinstance(node, ID):
-        return '0'
+        value = ENUM_CONSTANTS.get(node.name)
+        if value is None:
+            raise ValueError(
+                f"unknown constant {node.name!r} in an expression; it must"
+                f" be resolved, guessing a value would shift struct fields"
+            )
+        return f'({value})'
 
     else:
         assert_never(node)
@@ -104,6 +129,7 @@ def get_type(node: Node, parent_node: Node, type_prefix: str = "") -> str:
         return prototype.name
 
     elif isinstance(node, Enum):
+        register_enum(node)
         return Int.__name__
 
     elif isinstance(node, FuncDecl):
@@ -144,9 +170,12 @@ class CoreDataTypePrototypeField:
     Attributes:
         name (str): Name of the field. Example: 'ob_refcnt'
         type (type): Type of the field. Example: '*long'
+        bit_width (int | None): Width of the bit field, None when the
+            field is an ordinary one. Example: 'unsigned int kind:3' -> 3
     """
     name: str
     type: str
+    bit_width: int | None = None
 
     @classmethod
     def from_node(cls, node: Struct | Union, type_prefix: str) -> \
@@ -161,9 +190,13 @@ class CoreDataTypePrototypeField:
             name = name.replace("__", "_")
             datatype = get_type(decl.type, decl, type_prefix)
             datatype = datatype.replace("__", "_")
+            bit_width = None
+            if decl.bitsize is not None:
+                bit_width = int(eval(get_expr_from_binary_op(decl.bitsize)))
             fields.append(CoreDataTypePrototypeField(
                 name=name,
                 type=datatype,
+                bit_width=bit_width,
             ))
 
         return fields
@@ -182,20 +215,16 @@ class CoreDataTypePrototypeField:
 
         elif field_type.startswith("["):
             end_arr = field_type.index(']')
+            # the element type is always an instance expression, so
+            # nesting works: "[8][17]*_object" becomes an Array of
+            # Arrays of Pointers
             arr_type = cls.parse_field_type(
                 field_type[end_arr + 1:],
                 written_class_names,
             )
-            if arr_type.startswith(Pointer.__name__):
-                return (f"{Array.__name__}(datatype={arr_type},"
-                        f" length={field_type[1:end_arr]})")
 
-            else:
-                if arr_type.endswith('()'):
-                    arr_type = arr_type[:-2]
-                return (
-                    f"{arr_type}{field_type[:end_arr + 1]}"
-                )
+            return (f"{Array.__name__}(datatype={arr_type},"
+                    f" length={field_type[1:end_arr]})")
 
         if DataTypeMeta.is_typedef(field_type):
             field_type = cls.parse_field_type(
@@ -211,8 +240,12 @@ class CoreDataTypePrototypeField:
         return field_type
 
     def get_python_representation(self, written_class_names: set[str]) -> str:
-        return (f"{self.name} = "
-                f"{self.parse_field_type(self.type, written_class_names)}")
+        datatype = self.parse_field_type(self.type, written_class_names)
+        if self.bit_width is not None:
+            return (f"{self.name} = {BitField.__name__}("
+                    f"datatype={datatype}, bit_width={self.bit_width})")
+
+        return f"{self.name} = {datatype}"
 
 
 @dataclass
@@ -272,7 +305,8 @@ def main(source_code_filename: str, python_code_filename: str):
         UnsignedByte.__name__, Short.__name__, UnsignedShort.__name__,
         Int.__name__, UnsignedInt.__name__, LongLong.__name__,
         UnsignedLongLong.__name__, Float.__name__, Double.__name__,
-        Func.__name__, Void.__name__, Pointer.__name__, DataType.__name__
+        Func.__name__, Void.__name__, Pointer.__name__, DataType.__name__,
+        BitField.__name__,
     }
     core_datatypes_file_header = (
         f'# Generated by pystrector/code_generator. Do not edit by hand.\n'
@@ -282,6 +316,7 @@ def main(source_code_filename: str, python_code_filename: str):
         f'# import time.\n'
         f'GENERATED_ON = {(sys.platform, platform.machine())!r}\n'
         f'GENERATED_FOR_CPYTHON = {sys.version_info[:2]!r}\n'
+        f'GENERATED_FOR_CPYTHON_FULL = {sys.version_info[:3]!r}\n'
         f'\n'
         f'from pystrector.base_datatypes import ('
         f'{", ".join(written_class_names)}'

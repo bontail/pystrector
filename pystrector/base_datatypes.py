@@ -74,33 +74,64 @@ class DataTypeMeta(type):
     def is_composite_type(self) -> bool:
         return len(self.fields) > 0
 
-    def calculate_size(cls, is_union: bool) -> None:
-        """Calculate size of composite datatype with C padding rules."""
-        size = 0
+    def build_layout(cls, is_union: bool) -> None:
+        """Assign field offsets and the total size with C layout rules.
+
+        Offsets are tracked in bits so that bit fields can share a
+        storage unit with their neighbours, the way the System V AMD64
+        and AAPCS64 ABIs lay them out.
+        """
+        offset_bits = 0
         alignment = 1
         for field_name in cls.fields:
             datatype_obj: DataType = cls.__dict__[field_name]
             field_alignment = datatype_obj._pystr_alignment
             alignment = max(alignment, field_alignment)
-            if is_union:
-                size = max(size, datatype_obj._pystr_size)
-            else:
-                size = align(size, field_alignment) + datatype_obj._pystr_size
 
-        cls._pystr_size = align(size, alignment)
+            if isinstance(datatype_obj, BitField):
+                offset_bits = cls._place_bit_field(
+                    datatype_obj, offset_bits, is_union
+                )
+            elif is_union:
+                datatype_obj.set_offset(0)
+                offset_bits = max(offset_bits, datatype_obj._pystr_size * 8)
+            else:
+                offset_bits = align(offset_bits, field_alignment * 8)
+                datatype_obj.set_offset(offset_bits // 8)
+                offset_bits += datatype_obj._pystr_size * 8
+
+        cls._pystr_size = align(align(offset_bits, 8) // 8, alignment)
         if "size" not in cls.fields:
             # public alias; skipped when the struct itself has a "size"
             # field, whose descriptor must not be overwritten
             cls.size = cls._pystr_size
 
-    def update_offsets(cls) -> None:
-        """Update offsets of composite datatype."""
-        offset = 0
-        for field_name in cls.fields:
-            datatype_obj: DataType = cls.__dict__[field_name]
-            offset = align(offset, datatype_obj._pystr_alignment)
-            datatype_obj.set_offset(offset)
-            offset += datatype_obj._pystr_size
+    @staticmethod
+    def _place_bit_field(field: BitField, offset_bits: int,
+                         is_union: bool) -> int:
+        """Place one bit field and return the next free bit offset."""
+        unit_bits = field._pystr_size * 8
+
+        if field._pystr_bit_width == 0:
+            # ``unsigned int :0`` allocates nothing; it only pushes the
+            # next field to the start of a fresh storage unit
+            field.set_offset(0)
+            field.set_bit_shift(0)
+            return offset_bits if is_union else align(offset_bits, unit_bits)
+
+        start = 0 if is_union else offset_bits
+        end = start + field._pystr_bit_width
+        if start // unit_bits != (end - 1) // unit_bits:
+            # the field would straddle a storage unit; the ABI moves it
+            # to the next one instead of splitting it
+            start = align(start, unit_bits)
+            end = start + field._pystr_bit_width
+
+        unit_index = start // unit_bits
+        field.set_offset(unit_index * field._pystr_size)
+        field.set_bit_shift(start - unit_index * unit_bits)
+
+        return max(offset_bits, end) if is_union else end
 
     def __getitem__(self, item: int) -> Array:
         if not isinstance(item, int):
@@ -117,9 +148,7 @@ class DataTypeMeta(type):
             instance._pystr_size = declared_size
 
         if instance.is_composite_type:
-            if not is_union:
-                instance.update_offsets()
-            instance.calculate_size(is_union)
+            instance.build_layout(is_union)
 
         if hasattr(instance, "additional_names"):
             for additional_name in instance.additional_names:
@@ -320,6 +349,102 @@ class DataType(metaclass=DataTypeMeta):
         instance._pystr_keepalive = self._pystr_keepalive
 
         return instance
+
+
+class BitField(DataType):
+    """A C bit field: some bits inside the storage unit of its type.
+
+    ``_pystr_offset`` points at the storage unit rather than at the
+    field, and ``_pystr_bit_shift`` says where inside that unit the
+    value starts. Bits are counted from the least significant one,
+    which is what little endian targets do.
+    """
+    _pystr_datatype: DataType
+    _pystr_bit_width: int
+    _pystr_bit_shift: int
+
+    def __init__(self, datatype: DataType, bit_width: int,
+                 ptr: int = 0) -> None:
+        super().__init__(ptr=ptr)
+        self._pystr_datatype = datatype
+        self._pystr_bit_width = bit_width
+        self._pystr_bit_shift = 0
+        # the storage unit is as wide as the declared type: reads and
+        # writes go through it, never through the bit field alone
+        self._pystr_size = datatype._pystr_size
+
+    def __get__(self, instance: DataType, owner: DataTypeMeta) -> BitField:
+        new_instance = self.__class__(
+            ptr=instance._pystr_address, datatype=self._pystr_datatype,
+            bit_width=self._pystr_bit_width,
+        )
+        new_instance.set_offset(self._pystr_offset)
+        new_instance.set_bit_shift(self._pystr_bit_shift)
+        new_instance._pystr_keepalive = instance._pystr_keepalive
+
+        return new_instance
+
+    def set_bit_shift(self, bit_shift: int) -> None:
+        self._pystr_bit_shift = bit_shift
+
+    def __set__(self, instance: DataType, value: Any) -> None:
+        # a raw byte copy would overwrite the neighbours sharing the unit
+        raise TypeError(
+            f"Assign to {self._pystr_field_name}.pretty_value: a bit field"
+            f" shares its storage unit with other fields"
+        )
+
+    @property
+    def _pystr_signed(self) -> bool:
+        return getattr(self._pystr_datatype, "signed", False)
+
+    @property
+    def pretty_value(self) -> int:
+        unit = int.from_bytes(self.bytes_value, byteorder='little',
+                              signed=False)
+        value = (unit >> self._pystr_bit_shift) & (
+            (1 << self._pystr_bit_width) - 1
+        )
+        if self._pystr_signed and value >> (self._pystr_bit_width - 1):
+            # the top bit of a signed bit field is its sign bit
+            value -= 1 << self._pystr_bit_width
+
+        return value
+
+    @pretty_value.setter
+    def pretty_value(self, value: int) -> None:
+        if not isinstance(value, int):
+            raise TypeError(f"Value must be an int, not {type(value)}")
+
+        mask = (1 << self._pystr_bit_width) - 1
+        if not self._pystr_signed and not 0 <= value <= mask:
+            raise ValueError(
+                f"Value must fit in {self._pystr_bit_width} unsigned bits"
+            )
+        if self._pystr_signed and not (
+                -(1 << (self._pystr_bit_width - 1)) <= value
+                < 1 << (self._pystr_bit_width - 1)):
+            raise ValueError(
+                f"Value must fit in {self._pystr_bit_width} signed bits"
+            )
+
+        unit = int.from_bytes(self.bytes_value, byteorder='little',
+                              signed=False)
+        unit &= ~(mask << self._pystr_bit_shift)
+        unit |= (value & mask) << self._pystr_bit_shift
+        self.bytes_value = bytearray(
+            unit.to_bytes(self._pystr_size, byteorder='little', signed=False)
+        )
+
+    def convert_from_bytes(self, bytes_value: bytearray) -> Any:
+        raise TypeError(
+            "BitField reads the whole storage unit; use pretty_value"
+        )
+
+    def convert_to_bytes(self, value: Any) -> bytearray:
+        raise TypeError(
+            "BitField writes the whole storage unit; use pretty_value"
+        )
 
 
 class Pointer(DataType):

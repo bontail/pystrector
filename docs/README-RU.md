@@ -41,17 +41,26 @@ python3 -m pip install pystrector
 | little endian | `UnsupportedPlatformError` |
 | 64-битные указатели | `UnsupportedPlatformError` |
 | LP64 (`sizeof(long) == 8`) — исключает Windows | `UnsupportedPlatformError` |
+| сборка без `Py_TRACE_REFS` | `UnsupportedPlatformError` |
 | та же ОС и архитектура, что и у сгенерированного файла | `PlatformMismatchWarning` |
+| тот же patch-релиз CPython, что и у сгенерированного файла | `PlatformMismatchWarning` |
 
-Предупреждение не фатально: раскладка базовых объектов (`PyObject`,
-`list`, `int`, ...) на всех LP64-платформах одинакова, а вот
-платформозависимые структуры (pthread, состояние потока, учёт арен) —
-нет. Чтобы получить точные описания, перегенерируйте их:
+Предупреждения не фатальны, но на них стоит реагировать. Раскладка
+базовых объектов (`PyObject`, `list`, `int`, ...) на всех
+LP64-платформах одинакова, а вот платформозависимые структуры (pthread,
+состояние потока, учёт арен) — нет. Patch-релизы тоже двигают поля: в
+3.12.7 в `PyASCIIObject` добавили `statically_allocated`, и всё, что за
+ним, съехало. Чтобы получить точные описания, перегенерируйте их под
+свой интерпретатор:
 
 ```shell
-make update-python-source python-version=v3.12.0
+make update-python-source python-version=v3.12.9
 make generate-core-datatypes
 ```
+
+Для препроцессинга нужен настоящий `gcc` — clang выдаёт расширения,
+которые pycparser не разбирает. Компилятор переопределяется через
+`make update-python-source python-version=v3.12.9 cc=gcc-15`.
 
 ---
 

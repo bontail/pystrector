@@ -4,8 +4,14 @@ import tempfile
 INCLUDE_DIR_PATH = "cpython/Include/"
 MAIN_FILE = "Python.h"
 CORE_DIR = "internal"
+# stripping the #include lines below loses the macros the headers get
+# from each other, so the ones used as array bounds have to be restated
+# here. The generator raises on an unknown constant rather than
+# defaulting it to 0, which would shift every field after the array.
 HEADER = ('\n#define _PY_NSMALLPOSINTS 257\n'
           '#define _PY_NSMALLNEGINTS 5\n' +
+          '#define FUNC_MAX_WATCHERS 8\n' +  # pycore_function.h
+          '#define PY_MONITORING_TOOL_IDS 8\n' +  # pycore_instruments.h
           '#define __typeof__(...) void\n' +
           '#define _Py_atomic_load_relaxed(...) (1)\n' +
           '#define bool char\n' +

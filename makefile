@@ -1,11 +1,15 @@
 # add argument python-version=<some version>
+# override the preprocessor with cc=<some gcc>, it must be a real gcc:
+# clang emits blocks and other extensions pycparser can't read
+cc ?= gcc-14
 
 update-python-source:
-	git clone -b $(python-version) --single-branch https://github.com/python/cpython.git
+	rm -rf cpython/
+	git clone -b $(python-version) --single-branch --depth 1 https://github.com/python/cpython.git
 	cd cpython && ./configure
 	cd cpython/Include && cp ../pyconfig.h ./pyconfig.h
 	uv run python prepare_source_code.py
-	gcc-14 -E ./cpython/Include/Python.h -std=c99 > ./python_structures.c
+	$(cc) -E ./cpython/Include/Python.h -std=c99 > ./python_structures.c
 	rm -rf cpython/
 
 
