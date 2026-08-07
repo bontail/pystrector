@@ -25,7 +25,10 @@ class DataTypeMeta(type):
     typedefs: ClassVar[dict[str, str]] = {}
     registry: ClassVar[dict[str, DataTypeMeta]] = {}
     additional_names: tuple[str, ...]
+    # "size" is the public name and may be shadowed by a struct field of
+    # the same name; "_pystr_size" is what the library itself relies on
     size: int
+    _pystr_size: int
 
     @classmethod
     def create_typedef(cls, typedef: str, datatype: str):
@@ -80,11 +83,15 @@ class DataTypeMeta(type):
             field_alignment = datatype_obj._pystr_alignment
             alignment = max(alignment, field_alignment)
             if is_union:
-                size = max(size, datatype_obj.size)
+                size = max(size, datatype_obj._pystr_size)
             else:
-                size = align(size, field_alignment) + datatype_obj.size
+                size = align(size, field_alignment) + datatype_obj._pystr_size
 
-        cls.size = align(size, alignment)
+        cls._pystr_size = align(size, alignment)
+        if "size" not in cls.fields:
+            # public alias; skipped when the struct itself has a "size"
+            # field, whose descriptor must not be overwritten
+            cls.size = cls._pystr_size
 
     def update_offsets(cls) -> None:
         """Update offsets of composite datatype."""
@@ -93,7 +100,7 @@ class DataTypeMeta(type):
             datatype_obj: DataType = cls.__dict__[field_name]
             offset = align(offset, datatype_obj._pystr_alignment)
             datatype_obj.set_offset(offset)
-            offset += datatype_obj.size
+            offset += datatype_obj._pystr_size
 
     def __getitem__(self, item: int) -> Array:
         if not isinstance(item, int):
@@ -104,9 +111,12 @@ class DataTypeMeta(type):
     def __new__(cls, name: str, bases: tuple, attrs: dict, is_union=False) \
             -> DataTypeMeta:
         instance = super().__new__(cls, name, bases, attrs)
+        declared_size = attrs.get("size")
+        if isinstance(declared_size, int):
+            # scalar datatype declaring its width, e.g. "size = 4"
+            instance._pystr_size = declared_size
+
         if instance.is_composite_type:
-            # offsets must be set while all field descriptors are still
-            # present: calculate_size() shadows a field named "size"
             if not is_union:
                 instance.update_offsets()
             instance.calculate_size(is_union)
@@ -126,9 +136,16 @@ class DataTypeMeta(type):
 class DataType(metaclass=DataTypeMeta):
     # instance attributes use the "_pystr_" prefix to avoid clashing with
     # generated struct fields (CPython structs have fields named "size",
-    # "_offset", etc.)
+    # "address", "fields", etc.)
+    #
+    # the same applies to the machinery the library uses on itself: every
+    # internal read goes through "_pystr_size" / "_pystr_address", never
+    # through the public "size" / "address", because those two can be
+    # shadowed by a field descriptor of the same name. "arena_object" has
+    # a field named "address" and would otherwise recurse forever.
     additional_names: ClassVar[tuple[str, ...]]
     size: int
+    _pystr_size: int = 0
     _pystr_ptr: int
     _pystr_offset: int
     _pystr_field_name: str
@@ -159,7 +176,7 @@ class DataType(metaclass=DataTypeMeta):
         return super().__setattr__(key, value)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__} ({self.address})"
+        return f"{self.__class__.__name__} ({self._pystr_address})"
 
     def __init__(self, ptr: int = 0) -> None:
         self._pystr_ptr = ptr
@@ -176,7 +193,9 @@ class DataType(metaclass=DataTypeMeta):
                 for field_name in cls.fields
             )
 
-        return self.size
+        # incomplete types (void, functions) have no width; 1 keeps
+        # align() well defined
+        return self._pystr_size or 1
 
     def __set_name__(self, owner: Any, name: str) -> None:
         if self._pystr_ptr != 0:
@@ -185,17 +204,26 @@ class DataType(metaclass=DataTypeMeta):
         self._pystr_field_name = name
 
     def __get__(self, instance: DataType, owner: DataTypeMeta) -> DataType:
-        new_instance = self.__class__(ptr=instance.address)
+        new_instance = self.__class__(ptr=instance._pystr_address)
         new_instance.set_offset(self._pystr_offset)
         new_instance._pystr_keepalive = instance._pystr_keepalive
 
         return new_instance
 
     def __set__(self, instance: DataType, value: Any) -> None:
-        if not isinstance(value, self.__class__):
+        if not isinstance(value, DataType):
             raise TypeError(
                 f"Value must be an instance of DataType, not {type(value)}"
             )
+
+        # any datatype of the same width is accepted: the assignment is a
+        # raw byte copy, so e.g. Int -> UnsignedInt is well defined
+        if value._pystr_size != self._pystr_size:
+            raise TypeError(
+                f"Value must be {self._pystr_size} bytes wide, but"
+                f" {value.__class__.__name__} is {value._pystr_size}"
+            )
+
         obj = getattr(instance, self._pystr_field_name)
         obj.bytes_value = value.bytes_value
 
@@ -221,13 +249,21 @@ class DataType(metaclass=DataTypeMeta):
         self._pystr_ptr = ptr
 
     @property
-    def address(self) -> int:
+    def _pystr_address(self) -> int:
         return self._pystr_ptr + self._pystr_offset
+
+    @property
+    def address(self) -> int:
+        """Public alias of _pystr_address.
+
+        Shadowed on structs that declare a field named "address".
+        """
+        return self._pystr_address
 
     @property
     def bytes_value(self):
         return get_bytes_value(
-            self.address, self.size
+            self._pystr_address, self._pystr_size
         )
 
     @bytes_value.setter
@@ -237,13 +273,13 @@ class DataType(metaclass=DataTypeMeta):
                 f"Value must be bytearray, not {type(bytes_value)}"
             )
 
-        if len(bytes_value) != self.size:
+        if len(bytes_value) != self._pystr_size:
             raise ValueError(
-                f"Value must be exactly {self.size} bytes long,"
+                f"Value must be exactly {self._pystr_size} bytes long,"
                 f" got {len(bytes_value)}"
             )
 
-        set_bytes_value(self.address, bytes_value)
+        set_bytes_value(self._pystr_address, bytes_value)
 
     @property
     def pretty_value(self) -> Any:
@@ -260,7 +296,7 @@ class DataType(metaclass=DataTypeMeta):
         return bytearray(value)
 
     def cast_to(self, datatype: DataTypeMeta) -> DataType:
-        instance = datatype(ptr=self.address)
+        instance = datatype(ptr=self._pystr_address)
         instance._pystr_keepalive = self._pystr_keepalive
 
         return instance
@@ -271,9 +307,16 @@ class DataType(metaclass=DataTypeMeta):
             raise TypeError("Autocast work only with _object")
 
         from pystrector import Binder
-        instance = Binder.cls_to_datatype[
-            Binder.type_address_to_cls[self.ob_type.ptr_for_unpacking]
-        ](ptr=self.address)
+        Binder.ensure_binds()
+        type_address = self.ob_type.ptr_for_unpacking
+        klass = Binder.type_address_to_cls.get(type_address)
+        if klass is None:
+            raise TypeError(
+                f"pystrector doesn't know the type at {hex(type_address)};"
+                f" use cast_to() with an explicit datatype"
+            )
+
+        instance = Binder.cls_to_datatype[klass](ptr=self._pystr_address)
         instance._pystr_keepalive = self._pystr_keepalive
 
         return instance
@@ -292,7 +335,7 @@ class Pointer(DataType):
 
     def __get__(self, instance: DataType, owner: DataTypeMeta) -> Pointer:
         new_instance = self.__class__(
-            ptr=instance.address, datatype=self._pystr_datatype
+            ptr=instance._pystr_address, datatype=self._pystr_datatype
         )
         new_instance.set_offset(self._pystr_offset)
         new_instance._pystr_keepalive = instance._pystr_keepalive
@@ -305,7 +348,7 @@ class Pointer(DataType):
                 f"Item must be an int, not {type(item)}"
             )
 
-        new_instance = self.__class__(ptr=self.address,
+        new_instance = self.__class__(ptr=self._pystr_address,
                                       datatype=self._pystr_datatype)
         new_instance.set_arr_index(self._pystr_arr_index + item)
         new_instance._pystr_keepalive = self._pystr_keepalive
@@ -315,7 +358,7 @@ class Pointer(DataType):
     @property
     def ptr_for_unpacking(self) -> int:
         return int.from_bytes(
-            get_bytes_value(self.address, self.size),
+            get_bytes_value(self._pystr_address, self._pystr_size),
             byteorder='little',
             signed=False
         )
@@ -335,7 +378,13 @@ class Pointer(DataType):
                 )
             instance = datatype_cls()
 
-        index_offset = self._pystr_arr_index * instance.size
+        if instance._pystr_size == 0:
+            raise TypeError(
+                f"Can't dereference a pointer to the incomplete type"
+                f" {instance.__class__.__name__}; cast it first"
+            )
+
+        index_offset = self._pystr_arr_index * instance._pystr_size
         instance.set_ptr(self.ptr_for_unpacking + index_offset)
         instance._pystr_keepalive = self._pystr_keepalive
 
@@ -380,12 +429,12 @@ class Array(Pointer):
             -> None:
         super().__init__(datatype, ptr)
         self._pystr_length = length
-        self.size = datatype.size * length
+        self._pystr_size = self.size = datatype._pystr_size * length
 
     def __get__(self, instance: DataType, owner: DataTypeMeta) -> Array:
         assert isinstance(self._pystr_datatype, DataType)
         new_instance = self.__class__(
-            ptr=instance.address, datatype=self._pystr_datatype,
+            ptr=instance._pystr_address, datatype=self._pystr_datatype,
             length=self._pystr_length
         )
         new_instance.set_offset(self._pystr_offset)
@@ -401,7 +450,7 @@ class Array(Pointer):
 
         assert isinstance(self._pystr_datatype, DataType)
         new_instance = self.__class__(
-            ptr=self.address, datatype=self._pystr_datatype,
+            ptr=self._pystr_address, datatype=self._pystr_datatype,
             length=self._pystr_length
         )
         new_instance.set_arr_index(self._pystr_arr_index + item)
@@ -416,7 +465,7 @@ class Array(Pointer):
 
     @property
     def ptr_for_unpacking(self) -> int:
-        return self.address
+        return self._pystr_address
 
 
 class BaseNumber(DataType):
@@ -429,7 +478,7 @@ class BaseNumber(DataType):
     def convert_to_bytes(self, integer_value: int) -> bytearray:
         return bytearray(
             integer_value.to_bytes(
-                self.size, byteorder='little', signed=self.signed
+                self._pystr_size, byteorder='little', signed=self.signed
             )
         )
 
@@ -450,7 +499,9 @@ class Bool(DataType):
         return any(bytes_value)
 
     def convert_to_bytes(self, bool_value: bool) -> bytearray:
-        return bytearray(int(bool_value).to_bytes(self.size, 'little'))
+        return bytearray(
+            int(bool_value).to_bytes(self._pystr_size, 'little')
+        )
 
 
 class Byte(BaseSignedNumber):
@@ -531,6 +582,8 @@ class Double(Float):
 
 class Void(DataType):
     additional_names: ClassVar[tuple[str, ...]] = ('void',)
+    # incomplete type: it has no storage of its own
+    size = 0
 
     def convert_from_bytes(self, bytes_value: bytearray) -> Any:
         raise TypeError("Void doesn't support pretty_value")
@@ -541,6 +594,8 @@ class Void(DataType):
 
 class Func(DataType):
     additional_names = ('func',)
+    # incomplete type: it has no storage of its own
+    size = 0
 
     def convert_from_bytes(self, bytes_value: bytearray) -> Any:
         raise TypeError("Func doesn't support pretty_value")
