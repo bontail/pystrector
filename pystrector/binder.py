@@ -19,6 +19,16 @@ from pystrector.core_datatypes import PyByteArrayObject, \
 class Binder:
     cls_to_datatype: ClassVar[dict[Any, DataTypeMeta]] = {}
     type_address_to_cls: ClassVar[dict[int, Any]] = {}
+    _binds_ready: ClassVar[bool] = False
+
+    @classmethod
+    def ensure_binds(cls) -> None:
+        """Populate the bindings once, on first use."""
+        if not Binder._binds_ready:
+            # set first: make_binds() binds objects of its own, and the
+            # code it reaches must not try to re-enter it
+            Binder._binds_ready = True
+            cls.make_binds()
 
     @classmethod
     def make_bind(cls, obj: Any, datatype: DataTypeMeta) -> None:
@@ -63,7 +73,9 @@ class Binder:
         PyInstanceMethod_New.restype = ctypes.py_object
         cls.make_bind(PyInstanceMethod_New(sum), PyInstanceMethodObject)
 
-        cls.make_bind(Binder().bind, PyMethodObject)
+        # a bound method object; taking it off the class avoids
+        # instantiating Binder while its bindings are half built
+        cls.make_bind(cls.bind, PyMethodObject)
         cls.make_bind((lambda _: _).__code__, PyCodeObject)
 
         def get_func():
@@ -102,11 +114,10 @@ class Binder:
         cls.make_bind(iter(range(1)), _PyRangeIterObject)
 
     def __init__(self) -> None:
-        if not self.__class__.cls_to_datatype:
-            self.__class__.make_binds()
+        self.__class__.ensure_binds()
 
-    @staticmethod
-    def bind(obj: Any) -> DataType:
+    @classmethod
+    def bind(cls, obj: Any) -> DataType:
         """Return the wrapper object.
 
         The wrapper keeps a strong reference to obj, so the memory it
@@ -114,7 +125,12 @@ class Binder:
 
         Unknown types fall back to the closest bound ancestor in the MRO:
         a subclass shares the C layout of its base unless it adds fields.
+
+        Usable both as Binder().bind(obj) and as Binder.bind(obj): the
+        bindings are built on first use either way.
         """
+        cls.ensure_binds()
+
         datatype = None
         for klass in type(obj).__mro__:
             datatype = Binder.cls_to_datatype.get(klass)
