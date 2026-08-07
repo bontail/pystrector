@@ -69,21 +69,25 @@ class IntervalSequenceFilter(ExtraSequenceFilterBase):
 
     def filter(self, char: int, index: int) -> ExtraSequenceCoords | None:
         if self.match_start_index < len(self.start_bytes):
+            if char != self.start_bytes[self.match_start_index]:
+                # a partial match broke off; the current char may still
+                # open a new one ("//*" must not be read as "/*")
+                self.match_start_index = 0
+
             if char == self.start_bytes[self.match_start_index]:
                 self.match_start_index += 1
                 if self.match_start_index == len(self.start_bytes):
                     return ExtraSequenceCoords(
                         index - len(self.start_bytes) + 1, index
                     )
-                return None
-            else:
-                self.match_start_index = 0
-                return None
+
+            return None
 
         if (self.end_condition(char) and
                 char == self.end_bytes[self.match_end_index]):
             self.match_end_index += 1
-            if self.match_start_index == len(self.start_bytes):
+            # the interval closes only once the whole end sequence matched
+            if self.match_end_index == len(self.end_bytes):
                 self.match_start_index = 0
                 self.match_end_index = 0
         else:

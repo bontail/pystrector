@@ -11,7 +11,7 @@ update-python-source:
 
 
 generate-core-datatypes:
-	export PYTHONPATH="${printenv PYTHONPATH}:${shell pwd}" && uv run python3 pystrector/code_generator/generate_code.py python_structures.c core_datatypes.py
+	uv run python3 -m pystrector.code_generator.generate_code python_structures.c core_datatypes.py
 	mv core_datatypes.py pystrector/core_datatypes.py
 	rm python_structures.c
 

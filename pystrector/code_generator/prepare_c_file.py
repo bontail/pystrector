@@ -1,6 +1,6 @@
 from typing import Callable
-from stream_handler import IntervalSequenceFilter, SequenceEqualsFilter, \
-    StreamHandler
+from pystrector.code_generator.stream_handler import \
+    IntervalSequenceFilter, SequenceEqualsFilter, StreamHandler
 
 
 def get_bracket_counter_func() -> Callable[[int], bool]:

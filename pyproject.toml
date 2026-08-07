@@ -21,6 +21,9 @@ dev = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["pystrector"]
+# development-only tool: it needs pycparser, a C preprocessor and the
+# CPython sources, none of which are runtime dependencies
+exclude = ["pystrector/code_generator"]
 
 [tool.mypy]
 ignore_missing_imports = true
