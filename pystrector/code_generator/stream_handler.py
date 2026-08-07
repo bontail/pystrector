@@ -1,5 +1,4 @@
 from collections.abc import Sequence, Callable
-from os.path import getsize
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
@@ -172,14 +171,12 @@ class StreamHandler:
 
     def handle_file(self, in_file, output) -> None:
         """Get in_file data, filter and write to output."""
-        self.data = bytearray(getsize(in_file.name))
+        self.data = bytearray(in_file.read())
         seq_coords: list[ExtraSequenceCoords] = []
         self.refresh_filters()
 
-        for i in range(len(self.data)):
-            ch = in_file.read(1)
-            self.data[i] = ord(ch)
-            seq_coords += self.get_bad_sequence_coords(ch[0], i)
+        for i, ch in enumerate(self.data):
+            seq_coords += self.get_bad_sequence_coords(ch, i)
 
         seq_coords = self.compress_coordinates(seq_coords)
         i, seq_coords_index = 0, 0
