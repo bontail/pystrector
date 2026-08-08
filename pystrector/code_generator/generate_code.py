@@ -12,7 +12,7 @@ from pycparser.c_ast import Decl, Typedef, PtrDecl, Struct, \
 from pystrector.base_datatypes import DataTypeMeta, Void, Int, Func, Array, \
     Pointer, UnsignedInt, LongLong, UnsignedLongLong, Byte, Bool, \
     UnsignedByte, Short, UnsignedShort, Float, Double, DataType, BitField, \
-    get_anonymous_var_name
+    char_is_signed, get_anonymous_var_name
 from pystrector.code_generator.prepare_c_file import prepare_c_file
 
 ANONYMOUS_STRUCT_ID = 1
@@ -434,6 +434,7 @@ def main(source_code_filename: str, python_code_filename: str):
         f'GENERATED_ON = {(sys.platform, platform.machine())!r}\n'
         f'GENERATED_FOR_CPYTHON = {sys.version_info[:2]!r}\n'
         f'GENERATED_FOR_CPYTHON_FULL = {sys.version_info[:3]!r}\n'
+        f'GENERATED_CHAR_SIGNED = {char_is_signed()!r}\n'
         f'\n'
         f'from pystrector.base_datatypes import ('
         f'{", ".join(sorted(written_class_names))}'

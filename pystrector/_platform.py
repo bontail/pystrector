@@ -14,6 +14,7 @@ import sys
 import warnings
 
 from pystrector import core_datatypes
+from pystrector.base_datatypes import char_is_signed
 
 # recorded by the code generator; older generated files predate it
 GENERATED_ON: tuple[str, str] = getattr(
@@ -24,6 +25,9 @@ GENERATED_FOR_CPYTHON: tuple[int, int] = getattr(
 )
 GENERATED_FOR_CPYTHON_FULL: tuple[int, int, int] | None = getattr(
     core_datatypes, "GENERATED_FOR_CPYTHON_FULL", None
+)
+GENERATED_CHAR_SIGNED: bool | None = getattr(
+    core_datatypes, "GENERATED_CHAR_SIGNED", None
 )
 
 
@@ -118,8 +122,33 @@ def check_platform() -> None:
     )
 
 
+def check_char_signedness() -> None:
+    """Warn when plain "char" means the other thing here."""
+    if GENERATED_CHAR_SIGNED is None:
+        return
+
+    running_on = char_is_signed()
+    if running_on == GENERATED_CHAR_SIGNED:
+        return
+
+    generated, current = (
+        ("signed", "unsigned") if GENERATED_CHAR_SIGNED
+        else ("unsigned", "signed")
+    )
+    warnings.warn(
+        f"the bundled layouts were generated where plain C 'char' is"
+        f" {generated}, but it is {current} here. Field widths are"
+        f" unaffected, so every offset still holds, but a char field"
+        f" whose top bit is set reads with the wrong sign. Regenerate"
+        f" the layouts on this platform to fix it",
+        PlatformMismatchWarning,
+        stacklevel=3,
+    )
+
+
 def check() -> None:
     check_abi()
     check_build()
     check_platform()
     check_micro_version()
+    check_char_signedness()

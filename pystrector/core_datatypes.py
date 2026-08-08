@@ -6,6 +6,7 @@
 GENERATED_ON = ('darwin', 'arm64')
 GENERATED_FOR_CPYTHON = (3, 12)
 GENERATED_FOR_CPYTHON_FULL = (3, 12, 9)
+GENERATED_CHAR_SIGNED = True
 
 from pystrector.base_datatypes import (Array, BitField, Bool, Byte, DataType, Double, Float, Func, Int, LongLong, Pointer, Short, UnsignedByte, UnsignedInt, UnsignedLongLong, UnsignedShort, Void)
 

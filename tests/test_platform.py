@@ -8,7 +8,10 @@ from unittest import mock
 from pystrector import _platform
 from pystrector._platform import (
     PlatformMismatchWarning, UnsupportedPlatformError, check_abi,
-    check_build, check_micro_version, check_platform,
+    check_build, check_char_signedness, check_micro_version, check_platform,
+)
+from pystrector.base_datatypes import (
+    Byte, DataTypeMeta, UnsignedByte, char_is_signed,
 )
 
 
@@ -132,6 +135,63 @@ class TestMicroVersionChecks(unittest.TestCase):
             with warnings.catch_warnings(record=True) as caught:
                 warnings.simplefilter('always')
                 check_micro_version()
+
+        self.assertEqual(caught, [])
+
+
+class TestCharSignedness(unittest.TestCase):
+    """Plain "char" is a third type, and C lets the platform pick a side.
+
+    The width is 1 either way, so no offset moves; what moves is the
+    sign of every char field whose top bit is set.
+    """
+
+    def test_char_resolves_to_a_concrete_datatype(self):
+        expected = Byte if char_is_signed() else UnsignedByte
+        self.assertEqual(
+            DataTypeMeta.get_typedef_class('char'), expected.__name__
+        )
+
+    def test_apple_platforms_are_signed_whatever_the_architecture(self):
+        with mock.patch.object(sys, 'platform', 'darwin'):
+            with mock.patch.object(platform, 'machine', lambda: 'arm64'):
+                self.assertTrue(char_is_signed())
+
+    def test_arm_linux_is_unsigned(self):
+        with mock.patch.object(sys, 'platform', 'linux'):
+            with mock.patch.object(platform, 'machine', lambda: 'aarch64'):
+                self.assertFalse(char_is_signed())
+
+    def test_x86_linux_is_signed(self):
+        with mock.patch.object(sys, 'platform', 'linux'):
+            with mock.patch.object(platform, 'machine', lambda: 'x86_64'):
+                self.assertTrue(char_is_signed())
+
+    def test_matching_signedness_is_silent(self):
+        with mock.patch.object(_platform, 'GENERATED_CHAR_SIGNED',
+                               char_is_signed()):
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                check_char_signedness()
+
+        self.assertEqual(caught, [])
+
+    def test_opposite_signedness_warns(self):
+        with mock.patch.object(_platform, 'GENERATED_CHAR_SIGNED',
+                               not char_is_signed()):
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                check_char_signedness()
+
+        self.assertEqual(len(caught), 1)
+        self.assertIs(caught[0].category, PlatformMismatchWarning)
+        self.assertIn('char', str(caught[0].message))
+
+    def test_generated_file_without_the_marker_is_silent(self):
+        with mock.patch.object(_platform, 'GENERATED_CHAR_SIGNED', None):
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                check_char_signedness()
 
         self.assertEqual(caught, [])
 
