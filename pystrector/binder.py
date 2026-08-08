@@ -22,6 +22,13 @@ class Binder:
     type_address_to_cls: ClassVar[dict[int, Any]] = {}
     _binds_ready: ClassVar[bool] = False
     _binds_lock: ClassVar[threading.RLock] = threading.RLock()
+    # id of the thread currently inside make_binds(), if any. make_binds()
+    # binds objects of its own and the code it reaches may call back into
+    # ensure_binds(); that thread has to fall through, while every other
+    # thread must wait for the table to be complete. A shared "ready"
+    # flag can't express both: setting it early lets other threads see an
+    # empty table and conclude pystrector doesn't know their type.
+    _building_in_thread: ClassVar[int | None] = None
 
     @classmethod
     def ensure_binds(cls) -> None:
@@ -29,23 +36,28 @@ class Binder:
         if Binder._binds_ready:
             return
 
+        if Binder._building_in_thread == threading.get_ident():
+            # re-entered from inside make_binds(); the table is partial
+            # but the caller is the one filling it
+            return
+
         with Binder._binds_lock:
             if Binder._binds_ready:
                 return
 
-            # set first: make_binds() binds objects of its own, and the
-            # code it reaches must not try to re-enter it
-            Binder._binds_ready = True
+            Binder._building_in_thread = threading.get_ident()
             try:
                 cls.make_binds()
+                Binder._binds_ready = True
             except BaseException:
-                # a half built mapping marked as ready would turn one
+                # a half built mapping left in place would turn one
                 # failure into "pystrector doesn't know this type" for
                 # every type behind the one that broke
-                Binder._binds_ready = False
                 Binder.cls_to_datatype.clear()
                 Binder.type_address_to_cls.clear()
                 raise
+            finally:
+                Binder._building_in_thread = None
 
     @classmethod
     def make_bind(cls, obj: Any, datatype: DataTypeMeta) -> None:
