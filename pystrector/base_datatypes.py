@@ -1,4 +1,6 @@
 from __future__ import annotations
+import platform
+import sys
 from copy import copy
 from typing import Any, ClassVar
 from pystrector.utils import get_bytes_value, set_bytes_value
@@ -7,6 +9,29 @@ from struct import unpack, pack
 
 ANONYMOUS_VAR_PREFIX: str = "anonymous_var"
 ANONYMOUS_VAR_ID: int = 1
+
+# architectures whose ABI makes plain "char" unsigned. Apple platforms
+# are signed on every architecture they ship, including arm64, so they
+# are checked before the machine name
+UNSIGNED_CHAR_MACHINES: frozenset[str] = frozenset({
+    'aarch64', 'aarch64_be', 'arm64', 'arm64e', 'armv6l', 'armv7l',
+    'armv8l', 'ppc', 'ppc64', 'ppc64le', 'powerpc', 'powerpc64',
+    'powerpc64le', 's390', 's390x',
+})
+
+
+def char_is_signed() -> bool:
+    """Report whether plain C "char" is signed on this platform.
+
+    C leaves the signedness of a bare "char" to the implementation, and
+    it is a third type distinct from both "signed char" and "unsigned
+    char". Getting it wrong makes every char field with the top bit set
+    read as a negative number.
+    """
+    if sys.platform == 'darwin':
+        return True
+
+    return platform.machine() not in UNSIGNED_CHAR_MACHINES
 
 
 def get_anonymous_var_name() -> str:
@@ -528,8 +553,19 @@ class Pointer(DataType):
                 f" {instance.__class__.__name__}; cast it first"
             )
 
+        target = self.ptr_for_unpacking
+        if target == 0:
+            # reading through a NULL pointer is the common way to end up
+            # in unmapped memory, and there it takes the interpreter down
+            # with a segfault rather than an exception. It costs one
+            # comparison to say so instead
+            raise ValueError(
+                f"Can't dereference a NULL pointer to"
+                f" {instance.__class__.__name__}"
+            )
+
         index_offset = self._pystr_arr_index * instance._pystr_size
-        instance.set_ptr(self.ptr_for_unpacking + index_offset)
+        instance.set_ptr(target + index_offset)
         instance._pystr_keepalive = self._pystr_keepalive
 
         return instance
@@ -652,7 +688,7 @@ class Bool(DataType):
 
 class Byte(BaseSignedNumber):
     additional_names: ClassVar[tuple[str, ...]] = (
-        'byte', 'char', 'signed char', 'signed byte',
+        'byte', 'signed char', 'signed byte',
     )
     size = 1
 
@@ -662,6 +698,15 @@ class UnsignedByte(BaseUnsignedNumber):
         'unsigned char', 'unsigned byte'
     )
     size = 1
+
+
+# plain "char" is resolved on the platform the layouts are generated on,
+# so the generated file names Byte or UnsignedByte outright and nothing
+# depends on this at run time. _platform warns when a file generated
+# elsewhere is used on a platform that would have chosen the other one
+DataTypeMeta.create_typedef(
+    'char', (Byte if char_is_signed() else UnsignedByte).__name__
+)
 
 
 class Short(BaseSignedNumber):

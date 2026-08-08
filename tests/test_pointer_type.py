@@ -68,3 +68,32 @@ class TestPointer(unittest.TestCase):
         first_reflector.table.bytes_value = second_reflector.table.bytes_value
         self.assertEqual(first_numbers, second_numbers)
         first_reflector.table.bytes_value = first_table_bytes_value
+
+
+class TestNullPointer(unittest.TestCase):
+    """A NULL deref must raise instead of reading address 0.
+
+    Reading unmapped memory takes the whole interpreter down with a
+    segfault, and there is no exception to catch afterwards.
+    """
+
+    def test_dereferencing_null_raises(self):
+        # tp_cache of a static type is NULL, and it stays NULL
+        reflector = binder.bind(int)
+        self.assertEqual(reflector.tp_cache.ptr_for_unpacking, 0)
+
+        with self.assertRaises(ValueError) as ctx:
+            _ = +reflector.tp_cache
+
+        self.assertIn('NULL', str(ctx.exception))
+
+    def test_indexing_through_null_raises(self):
+        reflector = binder.bind(int)
+
+        with self.assertRaises(ValueError):
+            _ = reflector.tp_cache[0]
+
+    def test_a_non_null_pointer_still_dereferences(self):
+        reflector = binder.bind(int)
+        self.assertNotEqual(reflector.tp_name.ptr_for_unpacking, 0)
+        self.assertEqual((+reflector.tp_name).pretty_value, ord('i'))
