@@ -4,8 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pystrector"
-# the version tracks the supported CPython version
-version = "3.12.0"
+# the version tracks the CPython release the bundled layouts were
+# generated from, down to the patch level: patch releases move fields,
+# so 3.12.9 and 3.12.0 are not interchangeable. Keep it in step with
+# GENERATED_FOR_CPYTHON_FULL in core_datatypes.py
+version = "3.12.9"
 description = "Python Struct Reflector"
 authors = [{ name = "bontail" }]
 readme = "README.md"
@@ -21,6 +24,9 @@ dev = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["pystrector"]
+# the package is fully annotated; without this marker none of it is
+# visible to a type checker running against the installed wheel
+artifacts = ["pystrector/py.typed"]
 # development-only tool: it needs pycparser, a C preprocessor and the
 # CPython sources, none of which are runtime dependencies
 exclude = ["pystrector/code_generator"]

@@ -166,6 +166,39 @@ class TestGeneratedNamesAreUnique(unittest.TestCase):
         self.assertEqual(duplicated, [])
 
 
+class TestHandRestatedConstants(unittest.TestCase):
+    """prepare_source_code.py restates macros the headers lose.
+
+    The generator raises on a constant it cannot resolve, but a constant
+    that merely changed value passes quietly and shifts every field
+    behind the array it sizes. These pin the ones the interpreter can be
+    asked about.
+    """
+
+    @staticmethod
+    def is_a_small_int(number: int) -> bool:
+        # built at run time so the compiler can't fold the two into one
+        # constant and make everything look interned
+        return int(f'{number}') is int(f'{number}')
+
+    def test_small_ints_holds_exactly_the_interned_ints(self):
+        from pystrector.core_datatypes import _Py_static_objects_singletons
+
+        lowest = 0
+        while self.is_a_small_int(lowest - 1):
+            lowest -= 1
+
+        highest = 0
+        while self.is_a_small_int(highest + 1):
+            highest += 1
+
+        # _PY_NSMALLNEGINTS + _PY_NSMALLPOSINTS, restated by hand
+        small_ints = _Py_static_objects_singletons.__dict__['small_ints']
+        self.assertEqual(
+            small_ints._pystr_length, highest - lowest + 1
+        )
+
+
 class TestEveryDeclaredFieldIsPartOfTheLayout(unittest.TestCase):
     """A field written as a plain string is not a descriptor.
 

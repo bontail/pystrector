@@ -41,7 +41,7 @@ wheels = [
 
 [[package]]
 name = "pystrector"
-version = "3.12.0"
+version = "3.12.9"
 source = { editable = "." }
 
 [package.dev-dependencies]

@@ -8,8 +8,16 @@ on:
 
 jobs:
   run_tests:
-    name: Run all tests
-    runs-on: ubuntu-latest
+    name: Run all tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # macos-latest is arm64, the platform core_datatypes.py is
+        # generated on: without it the layouts are never checked
+        # against the platform they actually describe
+        os: [ubuntu-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v4

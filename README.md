@@ -46,13 +46,18 @@ validates this on import:
 | not a `Py_TRACE_REFS` build | `UnsupportedPlatformError` |
 | same OS and architecture as the bundled layouts | `PlatformMismatchWarning` |
 | same CPython patch release as the bundled layouts | `PlatformMismatchWarning` |
+| plain `char` has the same signedness as where the layouts were generated | `PlatformMismatchWarning` |
 
 The warnings are not fatal, but they are worth acting on. Core object
 layouts (`PyObject`, `list`, `int`, ...) are the same across LP64
 platforms, while platform specific structs (pthread types, thread state,
 arena bookkeeping) are not. Patch releases move fields too — 3.12.7
 added `statically_allocated` to `PyASCIIObject`, which shifts everything
-behind it. To be exact, regenerate the layouts for your own interpreter:
+behind it. The `char` warning is milder: no offset moves, but C leaves
+the signedness of a plain `char` to the platform (it is unsigned on
+ARM Linux, signed on x86 and on every Apple target), so a `char` field
+with its top bit set reads with the wrong sign. To be exact, regenerate
+the layouts for your own interpreter:
 
 ```shell
 make update-python-source python-version=v3.12.9
@@ -158,6 +163,11 @@ print(binder.bind(x).ob_item[0][1])
 print(+(binder.bind(x).ob_item[0]))
 print(+(binder.bind(x).ob_item[0] + 1))
 ```
+
+Dereferencing a NULL pointer raises `ValueError` rather than reading
+address 0. Nothing checks the other invalid addresses, though: a
+pointer into unmapped memory takes the whole interpreter down with a
+segfault, and there is no exception left to catch.
 
 You can convert mappers of some data types to others
 
