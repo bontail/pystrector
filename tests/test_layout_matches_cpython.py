@@ -119,5 +119,97 @@ class TestArrayBounds(unittest.TestCase):
         )
 
 
+class TestGeneratedNamesAreUnique(unittest.TestCase):
+    """Two C names that collapse to one lose a field or a whole struct."""
+
+    @staticmethod
+    def read_generated_source() -> list[str]:
+        from pystrector import core_datatypes
+
+        with open(core_datatypes.__file__) as file:
+            return file.read().splitlines()
+
+    def test_no_struct_is_declared_twice(self):
+        import re
+
+        names = [
+            match.group(1)
+            for match in map(
+                lambda line: re.match(r'class (\w+)\(', line),
+                self.read_generated_source(),
+            )
+            if match is not None
+        ]
+
+        self.assertEqual(len(names), len(set(names)))
+
+    def test_no_struct_declares_one_field_twice(self):
+        """A duplicate key silently keeps only the last assignment."""
+        import re
+
+        duplicated: list[str | None] = []
+        current: str | None = None
+        fields: list[str] = []
+        for line in self.read_generated_source() + ['class end(']:
+            class_match = re.match(r'class (\w+)\(', line)
+            if class_match is not None:
+                if len(fields) != len(set(fields)):
+                    duplicated.append(current)
+                current = class_match.group(1)
+                fields = []
+                continue
+
+            field_match = re.match(r'    (\w+) = ', line)
+            if field_match is not None:
+                fields.append(field_match.group(1))
+
+        self.assertEqual(duplicated, [])
+
+
+class TestEveryDeclaredFieldIsPartOfTheLayout(unittest.TestCase):
+    """A field written as a plain string is not a descriptor.
+
+    It contributes nothing to the offsets, so it disappears from the
+    struct without a trace: pyruntimestate used to be missing 22 of its
+    40 fields because they were emitted before the structs they embed.
+    """
+
+    def test_no_field_is_left_as_an_unresolved_name(self):
+        import re
+
+        from pystrector import core_datatypes
+
+        with open(core_datatypes.__file__) as file:
+            unresolved = [
+                line for line in file
+                if re.match(r'    \w+ = "', line)
+            ]
+
+        self.assertEqual(unresolved, [])
+
+    def test_every_declared_field_became_a_descriptor(self):
+        import re
+
+        from pystrector import core_datatypes
+
+        declared: dict[str, int] = {}
+        current = None
+        with open(core_datatypes.__file__) as file:
+            for line in file:
+                class_match = re.match(r'class (\w+)\(', line)
+                if class_match is not None:
+                    current = class_match.group(1)
+                    declared[current] = 0
+                elif re.match(r'    \w+ = ', line) and current is not None:
+                    declared[current] += 1
+
+        missing = {
+            name: count for name, count in declared.items()
+            if len(getattr(core_datatypes, name).fields) != count
+        }
+
+        self.assertEqual(missing, {})
+
+
 if __name__ == '__main__':
     unittest.main()

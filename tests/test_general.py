@@ -63,8 +63,48 @@ class TestGeneral(unittest.TestCase):
         class Plain:
             pass
 
-        with self.assertRaises(TypeError):
-            binder.bind(Plain())
+        # nothing describes Plain, so the MRO ends at object and only
+        # the common header is readable
+        from pystrector.core_datatypes import _object
+
+        plain = Plain()
+        reflector = binder.bind(plain)
+        self.assertIsInstance(reflector, _object)
+        self.assertEqual(reflector.ob_type.ptr_for_unpacking, id(Plain))
+
+    def test_a_failed_setup_does_not_leave_half_the_bindings_behind(self):
+        """Otherwise one failure turns into "unknown type" for the rest."""
+        from unittest import mock
+
+        def make_binds_that_fails():
+            Binder.make_bind(1, _longobject)
+            raise RuntimeError("boom")
+
+        try:
+            with mock.patch.object(Binder, 'make_binds',
+                                   make_binds_that_fails):
+                Binder._binds_ready = False
+                Binder.cls_to_datatype.clear()
+                Binder.type_address_to_cls.clear()
+
+                with self.assertRaises(RuntimeError):
+                    Binder.ensure_binds()
+
+                self.assertFalse(Binder._binds_ready)
+                self.assertEqual(Binder.cls_to_datatype, {})
+        finally:
+            Binder._binds_ready = False
+            Binder.ensure_binds()
+
+        self.assertIsInstance(binder.bind(1), _longobject)
+
+    def test_a_field_read_on_the_class_says_what_to_do(self):
+        from pystrector.core_datatypes import PyListObject
+
+        with self.assertRaises(AttributeError) as caught:
+            getattr(PyListObject, 'ob_item')
+
+        self.assertIn("bound object", str(caught.exception))
 
     def test_casts(self):
         i = 21  # random number

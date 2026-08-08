@@ -2,6 +2,8 @@
 # override the preprocessor with cc=<some gcc>, it must be a real gcc:
 # clang emits blocks and other extensions pycparser can't read
 cc ?= gcc-14
+# stubs for SDK headers gcc expects but does not ship, see stubs/
+stubs = pystrector/code_generator/stubs
 
 update-python-source:
 	rm -rf cpython/
@@ -9,7 +11,7 @@ update-python-source:
 	cd cpython && ./configure
 	cd cpython/Include && cp ../pyconfig.h ./pyconfig.h
 	uv run python prepare_source_code.py
-	$(cc) -E ./cpython/Include/Python.h -std=c99 > ./python_structures.c
+	$(cc) -E -I$(stubs) ./cpython/Include/Python.h -std=c99 > ./python_structures.c
 	rm -rf cpython/
 
 

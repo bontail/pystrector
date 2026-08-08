@@ -37,8 +37,8 @@ class DataTypeMeta(type):
         For example:
             create_typedef('PyObject', '_object')
         """
-        typedef = typedef.replace("__", "_")
-        datatype = datatype.replace("__", "_")
+        # both names are kept exactly as they appear in C: the table is
+        # looked up with the names the parser produced
         cls.typedefs[typedef] = datatype
 
     @classmethod
@@ -232,7 +232,22 @@ class DataType(metaclass=DataTypeMeta):
 
         self._pystr_field_name = name
 
-    def __get__(self, instance: DataType, owner: DataTypeMeta) -> DataType:
+    def _bound_instance(self, instance: DataType | None,
+                        owner: DataTypeMeta) -> DataType:
+        """Return instance, rejecting a field read on the class itself."""
+        if instance is None:
+            raise AttributeError(
+                f"{owner.__name__}.{self._pystr_field_name} describes a"
+                f" field of the struct; read it on a bound object, or use"
+                f" {owner.__name__}.__dict__"
+                f"[{self._pystr_field_name!r}] for the layout itself"
+            )
+
+        return instance
+
+    def __get__(self, instance: DataType | None, owner: DataTypeMeta) \
+            -> DataType:
+        instance = self._bound_instance(instance, owner)
         new_instance = self.__class__(ptr=instance._pystr_address)
         new_instance.set_offset(self._pystr_offset)
         new_instance._pystr_keepalive = instance._pystr_keepalive
@@ -373,7 +388,9 @@ class BitField(DataType):
         # writes go through it, never through the bit field alone
         self._pystr_size = datatype._pystr_size
 
-    def __get__(self, instance: DataType, owner: DataTypeMeta) -> BitField:
+    def __get__(self, instance: DataType | None, owner: DataTypeMeta) \
+            -> BitField:
+        instance = self._bound_instance(instance, owner)
         new_instance = self.__class__(
             ptr=instance._pystr_address, datatype=self._pystr_datatype,
             bit_width=self._pystr_bit_width,
@@ -458,7 +475,9 @@ class Pointer(DataType):
         self._pystr_datatype = datatype
         self._pystr_arr_index = 0
 
-    def __get__(self, instance: DataType, owner: DataTypeMeta) -> Pointer:
+    def __get__(self, instance: DataType | None, owner: DataTypeMeta) \
+            -> Pointer:
+        instance = self._bound_instance(instance, owner)
         new_instance = self.__class__(
             ptr=instance._pystr_address, datatype=self._pystr_datatype
         )
@@ -556,7 +575,9 @@ class Array(Pointer):
         self._pystr_length = length
         self._pystr_size = self.size = datatype._pystr_size * length
 
-    def __get__(self, instance: DataType, owner: DataTypeMeta) -> Array:
+    def __get__(self, instance: DataType | None, owner: DataTypeMeta) \
+            -> Array:
+        instance = self._bound_instance(instance, owner)
         assert isinstance(self._pystr_datatype, DataType)
         new_instance = self.__class__(
             ptr=instance._pystr_address, datatype=self._pystr_datatype,
@@ -617,7 +638,7 @@ class BaseUnsignedNumber(BaseNumber):
 
 
 class Bool(DataType):
-    additional_names: ClassVar[tuple[str, ...]] = ('bool',)
+    additional_names: ClassVar[tuple[str, ...]] = ('bool', '_Bool')
     size = 1
 
     def convert_from_bytes(self, bytes_value: bytearray) -> bool:

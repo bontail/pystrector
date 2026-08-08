@@ -29,6 +29,27 @@ SIZES = {
 ENUM_CONSTANTS: dict[str, int] = {}
 
 
+def mangle_c_name(name: str) -> str:
+    """Make a C identifier usable as a Python name.
+
+    Only names Python would mangle itself are touched: an identifier
+    with two leading underscores and fewer than two trailing ones turns
+    into "_ClassName__name" when it is assigned inside a class body,
+    which hides it behind a name nobody can guess. Dropping the extra
+    underscores keeps it reachable.
+
+    Everything else is kept verbatim. Collapsing every "__" - which is
+    what this used to do - is not injective: two distinct identifiers of
+    _Py_global_strings.identifiers both became "_py_loop", so one of the
+    two fields was silently dropped from the class body and every field
+    behind it moved. Callers now raise on a collision instead.
+    """
+    if name.startswith("__") and not name.endswith("__"):
+        return "_" + name.lstrip("_")
+
+    return name
+
+
 def register_enum(node: Enum) -> None:
     """Record the value of every enumerator of node."""
     if node.values is None:
@@ -59,7 +80,12 @@ def get_expr_from_binary_op(node: Node) -> str:
             exp = get_expr_from_binary_op(node.expr)
             size = SIZES.get(exp)
             if size is None and exp.startswith("\""):
-                size = f"{len(exp) - 2}"
+                # sizeof a string literal counts the trailing NUL, so it
+                # is one more than the length. CPython declares the
+                # payload of every interned string as
+                # uint8_t _data[sizeof("name")]; dropping the NUL made
+                # those structs a byte short
+                size = f"{len(exp) - 2 + 1}"
             if size is None:
                 raise ValueError("Invalid code")
             return f'({size})'
@@ -185,11 +211,22 @@ class CoreDataTypePrototypeField:
             return []
 
         fields: list[CoreDataTypePrototypeField] = []
+        seen: dict[str, str] = {}
         for decl in node.decls:
-            name = decl.name if decl.name else get_anonymous_var_name()
-            name = name.replace("__", "_")
+            raw_name = decl.name if decl.name else get_anonymous_var_name()
+            name = mangle_c_name(raw_name)
+            if name in seen:
+                # a duplicate key in the class body would drop one of the
+                # two fields and shift every offset behind it
+                raise ValueError(
+                    f"fields {seen[name]!r} and {raw_name!r} of"
+                    f" {node.name or type_prefix} both map to {name!r}"
+                )
+            seen[name] = raw_name
+
+            # the type is kept as C spells it - "[16]__uint32_t" - and
+            # only its leaf identifier is renamed, in parse_field_type
             datatype = get_type(decl.type, decl, type_prefix)
-            datatype = datatype.replace("__", "_")
             bit_width = None
             if decl.bitsize is not None:
                 bit_width = int(eval(get_expr_from_binary_op(decl.bitsize)))
@@ -232,6 +269,9 @@ class CoreDataTypePrototypeField:
                 written_class_names,
             )
         else:
+            # struct names were already renamed when the prototype was
+            # created; this catches the plain identifiers
+            field_type = mangle_c_name(field_type)
             if field_type in written_class_names:
                 field_type += '()'
             else:
@@ -252,6 +292,7 @@ class CoreDataTypePrototypeField:
 class CoreDataTypePrototype:
     """Class representing a struct."""
     registered_prototypes: ClassVar[list[CoreDataTypePrototype]] = []
+    prototypes_by_name: ClassVar[dict[str, CoreDataTypePrototype]] = {}
     name: str
     fields: list[CoreDataTypePrototypeField]
     is_union: bool = False
@@ -266,7 +307,7 @@ class CoreDataTypePrototype:
                 name = name_prefix + parent_node.declname
             else:
                 name = get_anonymous_struct_name()
-        name = name.replace('__', '_')
+        name = mangle_c_name(name)
 
         new_prototype = CoreDataTypePrototype(
             name=name,
@@ -274,10 +315,86 @@ class CoreDataTypePrototype:
             is_union=isinstance(node, Union),
         )
 
-        if new_prototype.fields:
-            cls.registered_prototypes.append(new_prototype)
+        if not new_prototype.fields:
+            return new_prototype
+
+        known = cls.prototypes_by_name.get(name)
+        if known is not None:
+            if known != new_prototype:
+                # the later class would win in the generated module and
+                # describe both structs, one of them wrongly
+                raise ValueError(
+                    f"two different structs are both generated as"
+                    f" {name!r}"
+                )
+
+            return known
+
+        cls.prototypes_by_name[name] = new_prototype
+        cls.registered_prototypes.append(new_prototype)
 
         return new_prototype
+
+
+def embedded_dependency(field_type: str) -> str:
+    """Return the name of the type a field stores inside itself.
+
+    A pointer field only needs its target when it is dereferenced, so it
+    creates no dependency; an embedded struct - or an array of them -
+    has to be declared first.
+    """
+    while True:
+        while field_type.startswith('['):
+            field_type = field_type[field_type.index(']') + 1:]
+
+        if field_type.startswith('*'):
+            return Pointer.__name__
+
+        # a typedef can resolve to a pointer of its own, as every
+        # "typedef PyObject *(*binaryfunc)(...)" in CPython does
+        resolved = DataTypeMeta.get_typedef_class(field_type)
+        if resolved == field_type:
+            return mangle_c_name(field_type)
+
+        field_type = resolved
+
+
+def order_by_dependency(prototypes: list[CoreDataTypePrototype]) \
+        -> list[CoreDataTypePrototype]:
+    """Sort prototypes so that an embedded struct precedes its user.
+
+    The preprocessed headers are concatenated rather than compiled, so
+    a struct can be used before the line that defines it. A field whose
+    type has not been declared yet is written as a plain string, which
+    is not a descriptor and therefore silently drops out of the layout:
+    pyruntimestate used to lose 22 of its fields that way.
+    """
+    ordered: list[CoreDataTypePrototype] = []
+    done: set[str] = set()
+    being_visited: set[str] = set()
+
+    def visit(prototype: CoreDataTypePrototype) -> None:
+        if prototype.name in done:
+            return
+        if prototype.name in being_visited:
+            raise ValueError(f"{prototype.name} contains itself")
+
+        being_visited.add(prototype.name)
+        for field in prototype.fields:
+            dependency = CoreDataTypePrototype.prototypes_by_name.get(
+                embedded_dependency(field.type)
+            )
+            if dependency is not None:
+                visit(dependency)
+
+        being_visited.discard(prototype.name)
+        done.add(prototype.name)
+        ordered.append(prototype)
+
+    for prototype in prototypes:
+        visit(prototype)
+
+    return ordered
 
 
 def main(source_code_filename: str, python_code_filename: str):
@@ -319,18 +436,31 @@ def main(source_code_filename: str, python_code_filename: str):
         f'GENERATED_FOR_CPYTHON_FULL = {sys.version_info[:3]!r}\n'
         f'\n'
         f'from pystrector.base_datatypes import ('
-        f'{", ".join(written_class_names)}'
+        f'{", ".join(sorted(written_class_names))}'
         f')'
+    )
+
+    prototypes = order_by_dependency(
+        CoreDataTypePrototype.registered_prototypes
     )
 
     with open(python_code_filename, 'w') as file:
         file.write(core_datatypes_file_header)
-        for prototype in CoreDataTypePrototype.registered_prototypes:
+        for prototype in prototypes:
             file.write(
                 f'\n\nclass {prototype.name}(DataType,'
                 f' is_union={prototype.is_union}):\n'
             )
             for field in prototype.fields:
+                dependency = embedded_dependency(field.type)
+                if dependency not in written_class_names:
+                    # it would be written as a string, which is not a
+                    # descriptor: the field would vanish from the layout
+                    raise ValueError(
+                        f"{prototype.name}.{field.name} embeds"
+                        f" {field.type!r}, which is not a known datatype"
+                    )
+
                 code = field.get_python_representation(written_class_names)
                 file.write(
                     f'    {code}\n'

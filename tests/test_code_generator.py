@@ -204,12 +204,127 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(generate_code.ENUM_CONSTANTS['THIRD'], 10)
 
 
+class TestExpressionsSizeof(unittest.TestCase):
+
+    def test_sizeof_a_string_literal_counts_the_trailing_nul(self):
+        """CPython sizes interned strings as uint8_t _data[sizeof("x")]."""
+        from pycparser import c_parser
+
+        ast = c_parser.CParser().parse(
+            'struct holder { char buffer[sizeof("abc")]; };'
+        )
+        prototype = parse_one_struct(ast)
+
+        self.assertEqual(prototype.fields[0].type, '[4]char')
+
+
+def parse_one_struct(ast):
+    """Run the generator over ast and return the single prototype."""
+    from pystrector.code_generator.generate_code import (
+        CoreDataTypePrototype, handle_node,
+    )
+    for node in ast:
+        handle_node(node)
+
+    return CoreDataTypePrototype.registered_prototypes[-1]
+
+
+class TestNameMangling(unittest.TestCase):
+
+    def test_only_names_python_would_mangle_are_renamed(self):
+        from pystrector.code_generator.generate_code import mangle_c_name
+
+        # Python rewrites "__sig" to "_Owner__sig" inside a class body
+        self.assertEqual(mangle_c_name('__sig'), '_sig')
+        self.assertEqual(mangle_c_name('___sig'), '_sig')
+        # dunders and single underscores are left alone: collapsing them
+        # is what used to merge two distinct fields into one
+        self.assertEqual(mangle_c_name('__loop__'), '__loop__')
+        self.assertEqual(mangle_c_name('_py__loop_'), '_py__loop_')
+        self.assertEqual(mangle_c_name('_py___loop__'), '_py___loop__')
+        self.assertEqual(mangle_c_name('ob_refcnt'), 'ob_refcnt')
+
+    def test_two_fields_that_would_share_a_name_are_an_error(self):
+        """One of them would be dropped, shifting every field behind it."""
+        from pycparser import c_parser
+
+        ast = c_parser.CParser().parse(
+            'struct clash { int __x; int _x; };'
+        )
+        with self.assertRaises(ValueError):
+            parse_one_struct(ast)
+
+    def test_two_structs_that_would_share_a_name_are_an_error(self):
+        from pycparser import c_parser
+        from pystrector.code_generator.generate_code import (
+            CoreDataTypePrototype,
+        )
+
+        CoreDataTypePrototype.registered_prototypes.clear()
+        CoreDataTypePrototype.prototypes_by_name.clear()
+        ast = c_parser.CParser().parse(
+            'struct __twin { int a; };'
+            'struct _twin { int a; int b; };'
+        )
+        with self.assertRaises(ValueError):
+            parse_one_struct(ast)
+
+
+class TestDependencyOrder(unittest.TestCase):
+
+    def test_an_embedded_struct_is_written_before_its_user(self):
+        from pycparser import c_parser
+        from pystrector.code_generator.generate_code import (
+            CoreDataTypePrototype, handle_node, order_by_dependency,
+        )
+
+        CoreDataTypePrototype.registered_prototypes.clear()
+        CoreDataTypePrototype.prototypes_by_name.clear()
+        # "outer" is declared first and embeds "inner", which the
+        # concatenated headers only define afterwards
+        ast = c_parser.CParser().parse(
+            'struct inner;'
+            'struct outer { struct inner *link; struct inner inner; };'
+            'struct inner { int a; };'
+        )
+        for node in ast:
+            handle_node(node)
+
+        ordered = [
+            prototype.name for prototype in order_by_dependency(
+                CoreDataTypePrototype.registered_prototypes
+            )
+        ]
+
+        self.assertLess(ordered.index('inner'), ordered.index('outer'))
+
+    def test_a_pointer_does_not_order_anything(self):
+        """It is resolved when it is dereferenced, not when declared."""
+        from pystrector.code_generator.generate_code import (
+            embedded_dependency,
+        )
+
+        self.assertEqual(embedded_dependency('*_object'), 'Pointer')
+        self.assertEqual(embedded_dependency('[8]*_object'), 'Pointer')
+        self.assertEqual(embedded_dependency('[8]_object'), '_object')
+        self.assertEqual(embedded_dependency('_object'), '_object')
+
+
 class TestGeneratedCodeProvenance(unittest.TestCase):
 
     def test_generated_file_records_its_platform(self):
         from pystrector import core_datatypes
         self.assertEqual(len(core_datatypes.GENERATED_ON), 2)
         self.assertEqual(core_datatypes.GENERATED_FOR_CPYTHON, (3, 12))
+
+    def test_generated_file_records_its_patch_release(self):
+        """Without it _platform.check_micro_version() is dead code."""
+        from pystrector import core_datatypes
+        self.assertEqual(len(core_datatypes.GENERATED_FOR_CPYTHON_FULL), 3)
+        self.assertEqual(
+            core_datatypes.GENERATED_FOR_CPYTHON_FULL[:2],
+            core_datatypes.GENERATED_FOR_CPYTHON,
+        )
 
 
 if __name__ == '__main__':

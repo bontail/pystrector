@@ -1,5 +1,6 @@
 import sys
 import ctypes
+import threading
 from typing import Any, ClassVar
 from pystrector.base_datatypes import DataType, DataTypeMeta
 from pystrector.core_datatypes import PyByteArrayObject, \
@@ -20,15 +21,31 @@ class Binder:
     cls_to_datatype: ClassVar[dict[Any, DataTypeMeta]] = {}
     type_address_to_cls: ClassVar[dict[int, Any]] = {}
     _binds_ready: ClassVar[bool] = False
+    _binds_lock: ClassVar[threading.RLock] = threading.RLock()
 
     @classmethod
     def ensure_binds(cls) -> None:
         """Populate the bindings once, on first use."""
-        if not Binder._binds_ready:
+        if Binder._binds_ready:
+            return
+
+        with Binder._binds_lock:
+            if Binder._binds_ready:
+                return
+
             # set first: make_binds() binds objects of its own, and the
             # code it reaches must not try to re-enter it
             Binder._binds_ready = True
-            cls.make_binds()
+            try:
+                cls.make_binds()
+            except BaseException:
+                # a half built mapping marked as ready would turn one
+                # failure into "pystrector doesn't know this type" for
+                # every type behind the one that broke
+                Binder._binds_ready = False
+                Binder.cls_to_datatype.clear()
+                Binder.type_address_to_cls.clear()
+                raise
 
     @classmethod
     def make_bind(cls, obj: Any, datatype: DataTypeMeta) -> None:
@@ -112,6 +129,12 @@ class Binder:
         cls.make_bind(property(lambda _: _), propertyobject)
         cls.make_bind(sys._getframe(), _frame)
         cls.make_bind(iter(range(1)), _PyRangeIterObject)
+
+        # last: every type ends its MRO at object, so this is the
+        # fallback bind() lands on for a type nothing more specific
+        # describes. Only the common header is readable through it,
+        # which is still true of any object
+        cls.make_bind(object(), _object)
 
     def __init__(self) -> None:
         self.__class__.ensure_binds()
