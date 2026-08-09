@@ -118,7 +118,7 @@ class TestPrepareCFile(unittest.TestCase):
         source = (
             b'# 1 "some.h"\n'
             b'__extension__ struct point {\n'
-            b'    int x __attribute__((aligned(4)));\n'
+            b'    int x __attribute__((deprecated("use y")));\n'
             b'    int y;\n'
             b'};\n'
         )
@@ -308,6 +308,121 @@ class TestDependencyOrder(unittest.TestCase):
         self.assertEqual(embedded_dependency('[8]*_object'), 'Pointer')
         self.assertEqual(embedded_dependency('[8]_object'), '_object')
         self.assertEqual(embedded_dependency('_object'), '_object')
+
+
+class TestCExpressionSemantics(unittest.TestCase):
+    """Python spells some C operators the same way and means another."""
+
+    def evaluate(self, expression: str) -> int:
+        from pycparser import c_parser
+        from pystrector.code_generator.generate_code import (
+            eval_c_expr, get_expr_from_binary_op,
+        )
+        ast = c_parser.CParser().parse(
+            f'struct holder {{ char buffer[{expression}]; }};'
+        )
+        dim = ast.ext[0].type.decls[0].type.dim
+
+        return eval_c_expr(get_expr_from_binary_op(dim))
+
+    def test_division_truncates_toward_zero(self):
+        """C rounds -7/2 to -3; Python's "//" rounds it to -4."""
+        self.assertEqual(self.evaluate('-7 / 2'), -3)
+        self.assertEqual(self.evaluate('7 / 2'), 3)
+
+    def test_remainder_follows_the_division(self):
+        self.assertEqual(self.evaluate('-7 % 2'), -1)
+        self.assertEqual(self.evaluate('7 % 2'), 1)
+
+    def test_logical_operators_yield_an_int(self):
+        """"&&" is not Python syntax, and "and" returns an operand."""
+        self.assertEqual(self.evaluate('2 && 3'), 1)
+        self.assertEqual(self.evaluate('0 || 5'), 1)
+        self.assertEqual(self.evaluate('!0'), 1)
+        self.assertEqual(self.evaluate('!7'), 0)
+
+    def test_an_untranslatable_operator_is_a_clear_error(self):
+        from pycparser.c_ast import BinaryOp, Constant
+        from pystrector.code_generator.generate_code import (
+            UnsupportedCConstruct, get_expr_from_binary_op,
+        )
+
+        one = Constant(type='int', value='1')
+        with self.assertRaises(UnsupportedCConstruct):
+            get_expr_from_binary_op(BinaryOp(op=',', left=one, right=one))
+
+    def test_an_unknown_sizeof_names_the_type(self):
+        from pycparser import c_parser
+        from pystrector.code_generator.generate_code import (
+            UnsupportedCConstruct,
+        )
+
+        ast = c_parser.CParser().parse(
+            'struct holder { char buffer[sizeof(struct other)]; };'
+        )
+        with self.assertRaises(UnsupportedCConstruct) as caught:
+            parse_one_struct(ast)
+
+        self.assertIn('sizeof', str(caught.exception))
+
+
+class TestLayoutAttributes(unittest.TestCase):
+    """__attribute__ is dropped unread, so layout ones must be refused."""
+
+    def check(self, source: bytes) -> None:
+        from pystrector.code_generator.prepare_c_file import (
+            check_layout_attributes,
+        )
+        check_layout_attributes(source)
+
+    def assert_refused(self, source: bytes) -> None:
+        from pystrector.code_generator.prepare_c_file import (
+            LayoutAttributeError,
+        )
+        with self.assertRaises(LayoutAttributeError):
+            self.check(source)
+
+    def test_a_packed_struct_is_refused(self):
+        self.assert_refused(
+            b'struct __attribute__((packed)) foo { int a; char b; };'
+        )
+
+    def test_an_alignment_after_the_body_is_refused(self):
+        self.assert_refused(
+            b'struct foo { int a; } __attribute__((__aligned__(16)));'
+        )
+
+    def test_a_nested_struct_is_refused_too(self):
+        self.assert_refused(
+            b'struct foo { struct { int x; }'
+            b' __attribute__((packed)) inner; };'
+        )
+
+    def test_an_attribute_outside_a_struct_is_allowed(self):
+        """The system headers are full of those, and none moves a field."""
+        self.check(b'void f(void) __attribute__((aligned(8)));')
+        self.check(b'extern int a __attribute__((mode(SI)));')
+
+    def test_a_field_named_like_an_attribute_is_allowed(self):
+        self.check(b'struct foo { int mode; int packed; int aligned; };')
+
+    def test_a_harmless_attribute_is_allowed(self):
+        self.check(
+            b'struct foo { int a; } __attribute__((deprecated("x")));'
+        )
+
+    def test_the_bundled_headers_of_this_run_are_clean(self):
+        """prepare_c_file() runs the check; it must not fire on real C."""
+        source = (b'#line 1 "x.h"\n'
+                  b'struct _object { long ob_refcnt; };\n')
+        with tempfile.TemporaryDirectory() as directory:
+            in_path = os.path.join(directory, 'in.c')
+            out_path = os.path.join(directory, 'out.c')
+            with open(in_path, 'wb') as file:
+                file.write(source)
+            prepare_c_file(in_path, out_path)
+
+            self.assertTrue(os.path.exists(out_path))
 
 
 class TestGeneratedCodeProvenance(unittest.TestCase):

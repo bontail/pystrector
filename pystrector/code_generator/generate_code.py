@@ -3,7 +3,7 @@ import argparse
 import os
 import platform
 import sys
-from typing import ClassVar, assert_never
+from typing import Any, ClassVar
 from pycparser import parse_file  # noqa
 from dataclasses import dataclass
 from pycparser.c_ast import Decl, Typedef, PtrDecl, Struct, \
@@ -27,6 +27,50 @@ SIZES = {
 # PY_MONITORING_TOOL_IDS, ...), and resolving them to 0 would silently
 # shift every field that follows the array.
 ENUM_CONSTANTS: dict[str, int] = {}
+
+
+class UnsupportedCConstruct(ValueError):
+    """The headers use something the generator can't translate."""
+
+
+def c_div(left: int, right: int) -> int:
+    """Divide the way C does: truncating toward zero, not down."""
+    quotient = abs(left) // abs(right)
+
+    return -quotient if (left < 0) != (right < 0) else quotient
+
+
+def c_mod(left: int, right: int) -> int:
+    """Remainder matching c_div, so that (a/b)*b + a%b == a."""
+    return left - c_div(left, right) * right
+
+
+# C's logical operators yield an int, Python's yield an operand, and an
+# array bound has to stay an int. "&&" and "||" are not Python syntax to
+# begin with, so they are emitted as calls into this table
+C_EXPR_NAMESPACE: dict[str, Any] = {
+    "c_div": c_div,
+    "c_mod": c_mod,
+    "c_and": lambda left, right: int(bool(left) and bool(right)),
+    "c_or": lambda left, right: int(bool(left) or bool(right)),
+    "c_not": lambda value: int(not value),
+}
+
+# operators Python spells the same way and with the same meaning for the
+# integer constants that reach here
+PASSTHROUGH_BINARY_OPS: frozenset[str] = frozenset({
+    '+', '-', '*', '<<', '>>', '|', '&', '^',
+    '==', '!=', '<', '<=', '>', '>=',
+})
+
+
+def eval_c_expr(expression: str) -> int:
+    """Evaluate an expression built by get_expr_from_binary_op.
+
+    eval is acceptable here: the expression comes from CPython headers
+    parsed at code-generation time, not from user input.
+    """
+    return int(eval(expression, {"__builtins__": {}}, C_EXPR_NAMESPACE))
 
 
 def mangle_c_name(name: str) -> str:
@@ -58,7 +102,9 @@ def register_enum(node: Enum) -> None:
     next_value = 0
     for enumerator in node.values.enumerators:
         if enumerator.value is not None:
-            next_value = int(eval(get_expr_from_binary_op(enumerator.value)))
+            next_value = eval_c_expr(
+                get_expr_from_binary_op(enumerator.value)
+            )
         ENUM_CONSTANTS[enumerator.name] = next_value
         next_value += 1
 
@@ -87,18 +133,39 @@ def get_expr_from_binary_op(node: Node) -> str:
                 # those structs a byte short
                 size = f"{len(exp) - 2 + 1}"
             if size is None:
-                raise ValueError("Invalid code")
+                raise UnsupportedCConstruct(
+                    f"the width of sizeof({exp}) is unknown; add it to"
+                    f" SIZES, because guessing one would resize a field"
+                )
             return f'({size})'
+
+        if node.op == '!':
+            return f'c_not({get_expr_from_binary_op(node.expr)})'
+
+        if node.op not in ('+', '-', '~'):
+            raise UnsupportedCConstruct(
+                f"unary operator {node.op!r} in a constant expression"
+            )
+
         return f'({node.op + get_expr_from_binary_op(node.expr)})'
 
     elif isinstance(node, BinaryOp):
-        op = "//" if node.op == "/" else node.op
-        return f'({get_expr_from_binary_op(node.left) +
-                   op +
-                   get_expr_from_binary_op(node.right)})'
+        left = get_expr_from_binary_op(node.left)
+        right = get_expr_from_binary_op(node.right)
+        call = {'/': 'c_div', '%': 'c_mod',
+                '&&': 'c_and', '||': 'c_or'}.get(node.op)
+        if call is not None:
+            return f'{call}({left}, {right})'
+
+        if node.op not in PASSTHROUGH_BINARY_OPS:
+            raise UnsupportedCConstruct(
+                f"binary operator {node.op!r} in a constant expression"
+            )
+
+        return f'({left + node.op + right})'
 
     elif isinstance(node, TernaryOp):
-        cond = eval(get_expr_from_binary_op(node.cond))
+        cond = eval_c_expr(get_expr_from_binary_op(node.cond))
         if cond:
             return get_expr_from_binary_op(node.iftrue)
         else:
@@ -120,16 +187,18 @@ def get_expr_from_binary_op(node: Node) -> str:
         return f'({value})'
 
     else:
-        assert_never(node)
+        raise UnsupportedCConstruct(
+            f"{type(node).__name__} in a constant expression"
+        )
 
 
 def get_dimensions(node: ArrayDecl) -> int:
     if not isinstance(node, ArrayDecl):
-        assert_never(node)
+        raise UnsupportedCConstruct(
+            f"an array bound declared as {type(node).__name__}"
+        )
 
-    # eval is acceptable here: the expression comes from CPython headers
-    # parsed at code-generation time, not from user input
-    return int(eval(get_expr_from_binary_op(node.dim)))
+    return eval_c_expr(get_expr_from_binary_op(node.dim))
 
 
 def get_type(node: Node, parent_node: Node, type_prefix: str = "") -> str:
@@ -162,7 +231,10 @@ def get_type(node: Node, parent_node: Node, type_prefix: str = "") -> str:
         return Func.__name__
 
     else:
-        assert_never(node)
+        raise UnsupportedCConstruct(
+            f"{type(node).__name__} used as the type of"
+            f" {getattr(parent_node, 'name', None) or 'a declaration'}"
+        )
 
 
 def handle_node(node: Node) -> None:
@@ -186,7 +258,9 @@ def handle_node(node: Node) -> None:
         )
         return None
 
-    assert_never(node)
+    raise UnsupportedCConstruct(
+        f"{type(node).__name__} at the top level of the headers"
+    )
 
 
 @dataclass
@@ -229,7 +303,9 @@ class CoreDataTypePrototypeField:
             datatype = get_type(decl.type, decl, type_prefix)
             bit_width = None
             if decl.bitsize is not None:
-                bit_width = int(eval(get_expr_from_binary_op(decl.bitsize)))
+                bit_width = eval_c_expr(
+                    get_expr_from_binary_op(decl.bitsize)
+                )
             fields.append(CoreDataTypePrototypeField(
                 name=name,
                 type=datatype,

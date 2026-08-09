@@ -1,7 +1,118 @@
 import io
+import re
 from typing import Callable
 from pystrector.code_generator.stream_handler import \
     IntervalSequenceFilter, SequenceEqualsFilter, StreamHandler
+
+# attributes that change the layout rather than just annotating it. They
+# are dropped along with every other __attribute__, and dropping them is
+# not harmless: the generator would lay the struct out by the default
+# ABI rules and be silently wrong about every offset behind it
+LAYOUT_ATTRIBUTES: tuple[bytes, ...] = (
+    b'packed', b'aligned', b'mode', b'vector_size',
+)
+
+
+class LayoutAttributeError(ValueError):
+    """A dropped __attribute__ would have changed a struct layout."""
+
+
+def find_attribute_bodies(data: bytes) -> list[bytes]:
+    """Return the "(...)" of every __attribute__ in data."""
+    bodies = []
+    marker = b'__attribute__'
+    index = data.find(marker)
+    while index != -1:
+        cursor = index + len(marker)
+        while cursor < len(data) and data[cursor:cursor + 1].isspace():
+            cursor += 1
+
+        if data[cursor:cursor + 1] == b'(':
+            depth, start = 0, cursor
+            while cursor < len(data):
+                char = data[cursor:cursor + 1]
+                if char == b'(':
+                    depth += 1
+                elif char == b')':
+                    depth -= 1
+                    if depth == 0:
+                        cursor += 1
+                        break
+                cursor += 1
+            bodies.append(data[start:cursor])
+
+        index = data.find(marker, cursor)
+
+    return bodies
+
+
+def find_struct_declarations(data: bytes) -> list[bytes]:
+    """Return the text of every "struct/union { ... } ...;" in data.
+
+    Only these spans matter: an attribute anywhere else - on a function,
+    a prototype, a local variable - leaves struct layouts alone, and the
+    system headers are full of those.
+    """
+    declarations = []
+    for match in re.finditer(rb'\b(?:struct|union)\b', data):
+        keyword_at = match.start()
+
+        # a tag and attributes may sit between the keyword and the body,
+        # but nothing else does: a ";" before the "{" means this is a
+        # reference to a struct rather than a definition of one
+        declaration_end = data.find(b';', keyword_at)
+        if declaration_end == -1:
+            declaration_end = len(data)
+
+        body_at = data.find(b'{', keyword_at, declaration_end)
+        if body_at == -1:
+            continue
+
+        depth, index = 0, body_at
+        while index < len(data):
+            char = data[index:index + 1]
+            if char == b'{':
+                depth += 1
+            elif char == b'}':
+                depth -= 1
+                if depth == 0:
+                    break
+            index += 1
+
+        # everything up to the ";" as well: an attribute on the whole
+        # struct is written after the closing brace
+        end = data.find(b';', index)
+        end = len(data) if end == -1 else end
+        declarations.append(data[keyword_at:end])
+
+    return declarations
+
+
+def check_layout_attributes(data: bytes) -> None:
+    """Raise when a struct carries an attribute that moves fields around.
+
+    CPython does not use one today, so the filters below can drop every
+    __attribute__ unread. If that ever changes, the generated offsets
+    have to stop being trusted loudly rather than quietly.
+    """
+    for declaration in find_struct_declarations(data):
+        for body in find_attribute_bodies(declaration):
+            for attribute in LAYOUT_ATTRIBUTES:
+                if attribute not in body:
+                    continue
+
+                head = declaration[:declaration.index(b'{')].decode(
+                    errors='replace'
+                ).strip()
+                raise LayoutAttributeError(
+                    f"'{head}' carries"
+                    f" __attribute__{body.decode(errors='replace')}, which"
+                    f" changes how it is laid out. The generator drops"
+                    f" attributes and would produce wrong offsets, so it"
+                    f" stops instead: teach DataTypeMeta.build_layout"
+                    f" about the attribute, or keep the struct out of the"
+                    f" parsed headers"
+                )
 
 
 def get_bracket_counter_func() -> Callable[[int], bool]:
@@ -56,6 +167,8 @@ def prepare_c_file(filename: str, new_filename: str) -> None:
     without_markers = io.BytesIO()
     with open(filename, mode='rb') as old_file:
         comment_handler.handle_file(old_file, without_markers)
+
+    check_layout_attributes(without_markers.getvalue())
 
     without_markers.seek(0)
     with open(new_filename, mode='wb') as new_file:
