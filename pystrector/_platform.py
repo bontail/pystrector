@@ -9,6 +9,7 @@ Mismatches that would silently produce wrong offsets raise; mismatches
 that only affect the platform specific part of the file warn.
 """
 import ctypes
+import os
 import platform
 import sys
 import warnings
@@ -29,6 +30,13 @@ GENERATED_FOR_CPYTHON_FULL: tuple[int, int, int] | None = getattr(
 GENERATED_CHAR_SIGNED: bool | None = getattr(
     core_datatypes, "GENERATED_CHAR_SIGNED", None
 )
+
+
+# every frame inside the package is skipped when a warning is reported,
+# so it is attributed to whoever imported pystrector rather than to
+# pystrector/__init__.py. A fixed "stacklevel" can't do that: the depth
+# differs between "import pystrector" and a direct call to check()
+_PACKAGE_PREFIX: str = os.path.dirname(os.path.abspath(__file__)) + os.sep
 
 
 class UnsupportedPlatformError(RuntimeError):
@@ -100,7 +108,7 @@ def check_micro_version() -> None:
         " internal structs - 3.12.7 added a field to PyASCIIObject - so"
         " some offsets may be wrong",
         PlatformMismatchWarning,
-        stacklevel=3,
+        skip_file_prefixes=(_PACKAGE_PREFIX,),
     )
 
 
@@ -118,7 +126,7 @@ def check_platform() -> None:
         " 'make update-python-source python-version=<tag>' followed by"
         " 'make generate-core-datatypes' to be sure",
         PlatformMismatchWarning,
-        stacklevel=3,
+        skip_file_prefixes=(_PACKAGE_PREFIX,),
     )
 
 
@@ -142,7 +150,7 @@ def check_char_signedness() -> None:
         f" whose top bit is set reads with the wrong sign. Regenerate"
         f" the layouts on this platform to fix it",
         PlatformMismatchWarning,
-        stacklevel=3,
+        skip_file_prefixes=(_PACKAGE_PREFIX,),
     )
 
 

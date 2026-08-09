@@ -15,8 +15,8 @@ ANONYMOUS_VAR_ID: int = 1
 # are checked before the machine name
 UNSIGNED_CHAR_MACHINES: frozenset[str] = frozenset({
     'aarch64', 'aarch64_be', 'arm64', 'arm64e', 'armv6l', 'armv7l',
-    'armv8l', 'ppc', 'ppc64', 'ppc64le', 'powerpc', 'powerpc64',
-    'powerpc64le', 's390', 's390x',
+    'armv8l', 'loongarch64', 'ppc', 'ppc64', 'ppc64le', 'powerpc',
+    'powerpc64', 'powerpc64le', 'riscv32', 'riscv64', 's390', 's390x',
 })
 
 

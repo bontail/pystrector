@@ -83,6 +83,15 @@ class TestPlatformChecks(unittest.TestCase):
         self.assertEqual(len(caught), 1)
         self.assertIs(caught[0].category, PlatformMismatchWarning)
 
+    def test_the_warning_points_at_the_caller_not_at_pystrector(self):
+        """A warning blamed on pystrector/__init__.py is unfilterable."""
+        with mock.patch.object(_platform, 'GENERATED_ON', ('aix', 's390x')):
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                check_platform()
+
+        self.assertEqual(caught[0].filename, __file__)
+
     def test_unknown_provenance_is_silent(self):
         with mock.patch.object(_platform, 'GENERATED_ON', ('', '')):
             with warnings.catch_warnings(record=True) as caught:
@@ -161,6 +170,15 @@ class TestCharSignedness(unittest.TestCase):
         with mock.patch.object(sys, 'platform', 'linux'):
             with mock.patch.object(platform, 'machine', lambda: 'aarch64'):
                 self.assertFalse(char_is_signed())
+
+    def test_riscv_and_loongarch_are_unsigned(self):
+        """Both psABIs pick unsigned, like ARM and unlike x86."""
+        for machine in ('riscv64', 'riscv32', 'loongarch64'):
+            with self.subTest(machine=machine):
+                with mock.patch.object(sys, 'platform', 'linux'):
+                    with mock.patch.object(platform, 'machine',
+                                           lambda: machine):
+                        self.assertFalse(char_is_signed())
 
     def test_x86_linux_is_signed(self):
         with mock.patch.object(sys, 'platform', 'linux'):

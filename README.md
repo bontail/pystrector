@@ -55,9 +55,9 @@ arena bookkeeping) are not. Patch releases move fields too — 3.12.7
 added `statically_allocated` to `PyASCIIObject`, which shifts everything
 behind it. The `char` warning is milder: no offset moves, but C leaves
 the signedness of a plain `char` to the platform (it is unsigned on
-ARM Linux, signed on x86 and on every Apple target), so a `char` field
-with its top bit set reads with the wrong sign. To be exact, regenerate
-the layouts for your own interpreter:
+ARM, RISC-V and LoongArch Linux, signed on x86 and on every Apple
+target), so a `char` field with its top bit set reads with the wrong
+sign. To be exact, regenerate the layouts for your own interpreter:
 
 ```shell
 make update-python-source python-version=v3.12.9
