@@ -23,8 +23,15 @@ generate-core-datatypes:
 
 
 
+# PlatformMismatchWarning is expected whenever the suite runs somewhere
+# other than the machine core_datatypes.py was generated on, so it stays
+# a warning. Everything else is promoted to an error instead of being
+# hidden behind a blanket "-W ignore"
+warnings = -W error::DeprecationWarning -W error::ResourceWarning \
+           -W error::SyntaxWarning
+
 unittests:
-	uv run python -W ignore -m unittest tests/test*
+	uv run python $(warnings) -m unittest tests/test*
 
 
 ruff:

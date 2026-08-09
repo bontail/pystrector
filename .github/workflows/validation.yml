@@ -34,7 +34,7 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Run tests
-        run: uv run python -W ignore -m unittest tests/test*
+        run: make unittests
 
   linter:
     name: Run linter
